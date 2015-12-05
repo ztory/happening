@@ -1,5 +1,5 @@
 # Happening
-Happening is an event hub with a focus on "namespacing" events to groups.
+Happening is an event hub for Android with a focus on scoping events to specific groups.
 
 ### Sender / Listener
 A regular use case would be to listen on some global event, for example ONLINE_STATUS that would send events with `payload` equal to `true` or `false`. The code for implementing that would look something like this:
