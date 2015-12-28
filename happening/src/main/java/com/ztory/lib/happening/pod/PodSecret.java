@@ -8,13 +8,13 @@ import java.util.concurrent.atomic.AtomicInteger;
  * DataPod instances have access to DataPodSecret instances.
  * Created by jonruna on 28/12/15.
  */
-public final class DataPodSecret {
+public final class PodSecret {
 
     private static AtomicInteger sSecretIdGenerator = new AtomicInteger(0);
 
     final int id;
 
-    protected DataPodSecret() {
+    protected PodSecret() {
         id = sSecretIdGenerator.incrementAndGet();
     }
 

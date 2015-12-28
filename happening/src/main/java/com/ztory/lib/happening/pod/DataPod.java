@@ -16,7 +16,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 /**
  * Created by jonruna on 26/12/15.
  */
-public abstract class DataPod<R extends DataPodRes> {
+public abstract class DataPod<R extends PodResult> {
 
     //public abstract R<G> operation(Q<G> queryObject);
 
@@ -26,7 +26,7 @@ public abstract class DataPod<R extends DataPodRes> {
 
     private String mEventNameBroadcast;
 
-    private DataPodSecret mDataPodSecret;
+    private PodSecret mPodSecret;
 
     private Executor mExecutor;
 
@@ -38,13 +38,13 @@ public abstract class DataPod<R extends DataPodRes> {
 
         mTaskIdGenerator = new AtomicInteger(0);
         mEventNameBroadcast = Happening.getEventName(getClass(), "broadcast");
-        mDataPodSecret = new DataPodSecret();
+        mPodSecret = new PodSecret();
 
         mExecutor = theExecutor;
     }
 
-    protected final DataPodSecret podSecret() {
-        return mDataPodSecret;
+    protected final PodSecret podSecret() {
+        return mPodSecret;
     }
 
     protected final Executor podExecutor() {

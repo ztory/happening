@@ -8,15 +8,17 @@ import java.util.ArrayList;
 import java.util.HashMap;
 
 /**
+ * This class provides thread-safe async-functionality for notifying listeners when data or
+ * exceptions are ready for consumption.
  * Created by jonruna on 26/12/15.
  */
-public abstract class DataPodRes<D, P> {
+public abstract class PodResult<D, P> {
 
     /**
      * Subclasses can override this method if they want to do additional grooming of data
      * before success is set to TRUE. This method will only be called when setSuccess() is called.
      */
-    protected void onSuccess() {
+    protected void onSuccess() throws PodException {
 
     }
 
@@ -33,10 +35,10 @@ public abstract class DataPodRes<D, P> {
     private volatile P mPayload;
     private volatile PodException mException;
 
-    private ArrayList<PodCallback<DataPodRes<D, P>>> mListeners;
-    private HashMap<PodCallback<DataPodRes<D, P>>, Handler> mHandlerMap;
+    private ArrayList<PodCallback<PodResult<D, P>>> mListeners;
+    private HashMap<PodCallback<PodResult<D, P>>, Handler> mHandlerMap;
 
-    protected DataPodRes(DataPod theDataPod, int theTaskId) {
+    protected PodResult(DataPod theDataPod, int theTaskId) {
 
         mDataPod = theDataPod;
 
@@ -47,18 +49,13 @@ public abstract class DataPodRes<D, P> {
         mTaskId = theTaskId;
     }
 
-    public final void setSuccess(
-            DataPodSecret theSecret,
-            D theData
-    ) {
+    public final void setSuccess(PodSecret theSecret, D theData) throws PodException {
         setSuccess(theSecret, theData, null);
     }
 
-    public final void setSuccess(
-            DataPodSecret theSecret,
-            D theData,
-            P thePayload
-    ) {
+    public final void setSuccess(PodSecret theSecret, D theData, P thePayload)
+            throws PodException
+    {
 
         if (mFinished) {
             throw new IllegalStateException(
@@ -87,12 +84,12 @@ public abstract class DataPodRes<D, P> {
         Happening.sendEvent(
                 Happening.GROUP_ID_GLOBAL,
                 mDataPod.podEventNameBroadcast(),
-                DataPodRes.this
+                PodResult.this
         );
     }
 
     public final void setFailed(
-            DataPodSecret theSecret,
+            PodSecret theSecret,
             PodException theException
     ) {
 
@@ -119,7 +116,7 @@ public abstract class DataPodRes<D, P> {
         Happening.sendEvent(
                 Happening.GROUP_ID_GLOBAL,
                 mDataPod.podEventNameBroadcast(),
-                DataPodRes.this
+                PodResult.this
         );
     }
 
@@ -132,8 +129,8 @@ public abstract class DataPodRes<D, P> {
             return;
         }
 
-        ArrayList<PodCallback<DataPodRes<D, P>>> tempListeners;
-        HashMap<PodCallback<DataPodRes<D, P>>, Handler> tempHandlerMap;
+        ArrayList<PodCallback<PodResult<D, P>>> tempListeners;
+        HashMap<PodCallback<PodResult<D, P>>, Handler> tempHandlerMap;
 
         synchronized (this) {
             if (mListeners == null) {
@@ -149,7 +146,7 @@ public abstract class DataPodRes<D, P> {
 
         Handler uiHandler;
 
-        for (final PodCallback<DataPodRes<D, P>> iterListener : tempListeners) {
+        for (final PodCallback<PodResult<D, P>> iterListener : tempListeners) {
 
             uiHandler = tempHandlerMap.get(iterListener);
 
@@ -158,7 +155,7 @@ public abstract class DataPodRes<D, P> {
                         new Runnable() {
                             @Override
                             public void run() {
-                                iterListener.callback(DataPodRes.this);
+                                iterListener.callback(PodResult.this);
                             }
                         }
                 );
@@ -174,7 +171,7 @@ public abstract class DataPodRes<D, P> {
      * Add a PodCallback-listener that will be called when the isFinished() == true, will be called
      * immediately if isFinished() is true when calling addListener()
      */
-    public final synchronized void addListener(final PodCallback<DataPodRes<D, P>> listener) {
+    public final synchronized void addListener(final PodCallback<PodResult<D, P>> listener) {
         addListener(listener, null);
     }
 
@@ -184,7 +181,7 @@ public abstract class DataPodRes<D, P> {
      * immediately if isFinished() is true when calling addListener()
      */
     public final synchronized void addListener(
-            final PodCallback<DataPodRes<D, P>> listener,
+            final PodCallback<PodResult<D, P>> listener,
             final Handler uiHandler
     ) {
 
@@ -197,7 +194,7 @@ public abstract class DataPodRes<D, P> {
                         new Runnable() {
                             @Override
                             public void run() {
-                                listener.callback(DataPodRes.this);
+                                listener.callback(PodResult.this);
                             }
                         }
                 );
@@ -223,7 +220,7 @@ public abstract class DataPodRes<D, P> {
      * Method is thread-safe AND blocking
      * Remove a previously added PodCallback-listener
      */
-    public final synchronized void removeListener(PodCallback<DataPodRes<D, P>> listener) {
+    public final synchronized void removeListener(PodCallback<PodResult<D, P>> listener) {
 
         if (mListeners == null) {
             return;
