@@ -2,58 +2,47 @@ package com.ztory.lib.happening.pod;
 
 import android.os.Handler;
 
+import com.ztory.lib.happening.Happening;
+
 import java.util.ArrayList;
 import java.util.HashMap;
 
 /**
  * Created by jonruna on 26/12/15.
  */
-public final class DataPodResult<P, PO> {
+public abstract class DataPodRes<D, P> {
+
+    protected void setSuccessCalled() {
+
+    }
 
     private volatile boolean
             mFinished = false,
             mSuccessful = false,
             mAddedListeners = false;
 
-    private volatile int
-            mMode = -1,
-            mTaskId = -1;
+    private final String mDataPodEventName;
 
-    private volatile String mType;
+    private final int mTaskId;
 
-    private volatile P mPayload;
-    private volatile PO mParameterizedPayload;
+    private volatile D mData;
+    private volatile P mParameterizedData;
     private volatile PodException mException;
 
-    private ArrayList<PodCallback<DataPodResult<P, PO>>> mListeners;
-    private HashMap<PodCallback<DataPodResult<P, PO>>, Handler> mHandlerMap;
+    private ArrayList<PodCallback<DataPodRes<D, P>>> mListeners;
+    private HashMap<PodCallback<DataPodRes<D, P>>, Handler> mHandlerMap;
 
-    protected DataPodResult(int theMode, String theType, int theTaskId) {
-        setMode(theMode);
-        setType(theType);
-        setTaskId(theTaskId);
-    }
-
-    protected DataPodResult<P, PO> setMode(int theMode) {
-        mMode = theMode;
-        return this;
-    }
-
-    protected DataPodResult<P, PO> setType(String theType) {
-        mType = theType;
-        return this;
-    }
-
-    protected DataPodResult<P, PO> setTaskId(int theTaskId) {
+    protected <C extends DataPod> DataPodRes(DataPod theDataPod, int theTaskId) {
+        mDataPodEventName = theDataPod.podEventNameBroadcast();
         mTaskId = theTaskId;
+    }
+
+    protected DataPodRes<D, P> setParameterizedData(P theParameterizedData) {
+        mParameterizedData = theParameterizedData;
         return this;
     }
 
-    protected DataPodResult<P, PO> setPayload(P thePayload) {
-        return setPayload(thePayload, null);
-    }
-
-    protected DataPodResult<P, PO> setPayload(P thePayload, PO theParameterizedPayload) {
+    protected DataPodRes<D, P> setSuccess(D theData) {
 
         if (mFinished) {
             throw new IllegalStateException(
@@ -62,9 +51,9 @@ public final class DataPodResult<P, PO> {
             );
         }
 
-        mPayload = thePayload;
+        mData = theData;
 
-        mParameterizedPayload = theParameterizedPayload;
+        setSuccessCalled();
 
         mSuccessful = true;
 
@@ -72,16 +61,16 @@ public final class DataPodResult<P, PO> {
 
         notifyListeners();
 
-//        Happening.sendEvent(
-//                Happening.GROUP_ID_GLOBAL,
-//                podEventNameBroadcast(getClass()),
-//                this
-//        );
+        Happening.sendEvent(
+                Happening.GROUP_ID_GLOBAL,
+                mDataPodEventName,
+                DataPodRes.this
+        );
 
         return this;
     }
 
-    protected DataPodResult<P, PO> setException(PodException theException) {
+    protected DataPodRes<D, P> setFailed(PodException theException) {
 
         if (mFinished) {
             throw new IllegalStateException(
@@ -98,6 +87,12 @@ public final class DataPodResult<P, PO> {
 
         notifyListeners();
 
+        Happening.sendEvent(
+                Happening.GROUP_ID_GLOBAL,
+                mDataPodEventName,
+                DataPodRes.this
+        );
+
         return this;
     }
 
@@ -110,8 +105,8 @@ public final class DataPodResult<P, PO> {
             return;
         }
 
-        ArrayList<PodCallback<DataPodResult<P, PO>>> tempListeners;
-        HashMap<PodCallback<DataPodResult<P, PO>>, Handler> tempHandlerMap;
+        ArrayList<PodCallback<DataPodRes<D, P>>> tempListeners;
+        HashMap<PodCallback<DataPodRes<D, P>>, Handler> tempHandlerMap;
 
         synchronized (this) {
             if (mListeners == null) {
@@ -127,7 +122,7 @@ public final class DataPodResult<P, PO> {
 
         Handler uiHandler;
 
-        for (final PodCallback<DataPodResult<P, PO>> iterListener : tempListeners) {
+        for (final PodCallback<DataPodRes<D, P>> iterListener : tempListeners) {
 
             uiHandler = tempHandlerMap.get(iterListener);
 
@@ -136,7 +131,7 @@ public final class DataPodResult<P, PO> {
                         new Runnable() {
                             @Override
                             public void run() {
-                                iterListener.callback(DataPodResult.this);
+                                iterListener.callback(DataPodRes.this);
                             }
                         }
                 );
@@ -153,7 +148,7 @@ public final class DataPodResult<P, PO> {
      * immediately if isFinished() is true when calling addListener()
      */
     public synchronized void addListener(
-            final PodCallback<DataPodResult<P, PO>> listener,
+            final PodCallback<DataPodRes<D, P>> listener,
             final Handler uiHandler
     ) {
 
@@ -166,7 +161,7 @@ public final class DataPodResult<P, PO> {
                         new Runnable() {
                             @Override
                             public void run() {
-                                listener.callback(DataPodResult.this);
+                                listener.callback(DataPodRes.this);
                             }
                         }
                 );
@@ -192,7 +187,7 @@ public final class DataPodResult<P, PO> {
      * Method is thread-safe AND blocking
      * Remove a previously added PodCallback-listener
      */
-    public synchronized void removeListener(PodCallback<DataPodResult<P, PO>> listener) {
+    public synchronized void removeListener(PodCallback<DataPodRes<D, P>> listener) {
 
         if (mListeners == null) {
             return;
@@ -204,15 +199,18 @@ public final class DataPodResult<P, PO> {
 
     /**
      * Method is thread-safe but non-blocking
-     * @return the typecasted payload, may be null even if isSuccessful() == true
+     * @return the typecasted data, may be null even if isSuccessful() == true
      */
-    public P get() {
-        return mPayload;
+    public D get() {
+        return mData;
     }
 
-
-    public PO getParameterized() {
-        return mParameterizedPayload;
+    /**
+     * Method is thread-safe but non-blocking
+     * @return the typecasted payload, may be null even if isSuccessful() == true
+     */
+    public P getParameterizedData() {
+        return mParameterizedData;
     }
 
     /**
@@ -221,22 +219,6 @@ public final class DataPodResult<P, PO> {
      */
     public PodException getException() {
         return mException;
-    }
-
-    /**
-     * Method is thread-safe but non-blocking
-     * @return the result type
-     */
-    public String getType() {
-        return mType;
-    }
-
-    /**
-     * Method is thread-safe but non-blocking
-     * @return the result mode, -1 == not set
-     */
-    public int getMode() {
-        return mMode;
     }
 
     /**
@@ -260,15 +242,15 @@ public final class DataPodResult<P, PO> {
      * @return if the result is successful, returns the same as calling !isSuccessful()
      */
     public boolean isFailed() {
-        return !isSuccessful();
+        return !mSuccessful;
     }
 
     /**
      * Method is thread-safe but non-blocking
      * @return if the result has a non-null payload, always false until isFinished() == true
      */
-    public boolean hasPayload() {
-        return mPayload != null;
+    public boolean hasParameterizedData() {
+        return mParameterizedData != null;
     }
 
     /**
