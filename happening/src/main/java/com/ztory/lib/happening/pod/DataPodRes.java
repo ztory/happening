@@ -40,11 +40,11 @@ public abstract class DataPodRes<D, P> {
         mTaskId = theTaskId;
     }
 
-    protected DataPodRes<D, P> setSuccess(D theData) {
+    protected final DataPodRes<D, P> setSuccess(D theData) {
         return setSuccess(theData, null);
     }
 
-    protected DataPodRes<D, P> setSuccess(D theData, P thePayload) {
+    protected final DataPodRes<D, P> setSuccess(D theData, P thePayload) {
 
         if (mFinished) {
             throw new IllegalStateException(
@@ -74,7 +74,7 @@ public abstract class DataPodRes<D, P> {
         return this;
     }
 
-    protected DataPodRes<D, P> setFailed(PodException theException) {
+    protected final DataPodRes<D, P> setFailed(PodException theException) {
 
         if (mFinished) {
             throw new IllegalStateException(
@@ -151,7 +151,16 @@ public abstract class DataPodRes<D, P> {
      * Add a PodCallback-listener that will be called when the isFinished() == true, will be called
      * immediately if isFinished() is true when calling addListener()
      */
-    public synchronized void addListener(
+    public final synchronized void addListener(final PodCallback<DataPodRes<D, P>> listener) {
+        addListener(listener, null);
+    }
+
+    /**
+     * Method is thread-safe AND blocking
+     * Add a PodCallback-listener that will be called when the isFinished() == true, will be called
+     * immediately if isFinished() is true when calling addListener()
+     */
+    public final synchronized void addListener(
             final PodCallback<DataPodRes<D, P>> listener,
             final Handler uiHandler
     ) {
@@ -191,7 +200,7 @@ public abstract class DataPodRes<D, P> {
      * Method is thread-safe AND blocking
      * Remove a previously added PodCallback-listener
      */
-    public synchronized void removeListener(PodCallback<DataPodRes<D, P>> listener) {
+    public final synchronized void removeListener(PodCallback<DataPodRes<D, P>> listener) {
 
         if (mListeners == null) {
             return;
@@ -205,7 +214,7 @@ public abstract class DataPodRes<D, P> {
      * Method is thread-safe but non-blocking
      * @return the typecasted data, may be null even if isSuccessful() == true
      */
-    public D get() {
+    public final D getData() {
         return mData;
     }
 
@@ -213,7 +222,7 @@ public abstract class DataPodRes<D, P> {
      * Method is thread-safe but non-blocking
      * @return the typecasted payload, may be null even if isSuccessful() == true
      */
-    public P getPayload() {
+    public final P getPayload() {
         return mPayload;
     }
 
@@ -221,7 +230,7 @@ public abstract class DataPodRes<D, P> {
      * Method is thread-safe but non-blocking
      * @return the exception that caused the failure
      */
-    public PodException getException() {
+    public final PodException getException() {
         return mException;
     }
 
@@ -229,15 +238,23 @@ public abstract class DataPodRes<D, P> {
      * Method is thread-safe but non-blocking
      * @return the task-id that is generating the result, -1 == not set
      */
-    public int getTaskId() {
+    public final int getTaskId() {
         return mTaskId;
+    }
+
+    /**
+     * Method is thread-safe but non-blocking
+     * @return if the result is finished for consumtion by the caller
+     */
+    public final boolean isFinished() {
+        return mFinished;
     }
 
     /**
      * Method is thread-safe but non-blocking
      * @return if the result is successful, always false until isFinished() == true
      */
-    public boolean isSuccessful() {
+    public final boolean isSuccessful() {
         return mSuccessful;
     }
 
@@ -245,7 +262,7 @@ public abstract class DataPodRes<D, P> {
      * Method is thread-safe but non-blocking
      * @return if the result is successful, returns the same as calling !isSuccessful()
      */
-    public boolean isFailed() {
+    public final boolean isFailed() {
         return !mSuccessful;
     }
 
@@ -253,7 +270,7 @@ public abstract class DataPodRes<D, P> {
      * Method is thread-safe but non-blocking
      * @return same as calling get() != null
      */
-    public boolean has() {
+    public final boolean hasData() {
         return mData != null;
     }
 
@@ -261,16 +278,8 @@ public abstract class DataPodRes<D, P> {
      * Method is thread-safe but non-blocking
      * @return same as calling getPayload() != null
      */
-    public boolean hasPayload() {
+    public final boolean hasPayload() {
         return mPayload != null;
-    }
-
-    /**
-     * Method is thread-safe but non-blocking
-     * @return if the result is finished for consumtion by the caller
-     */
-    public boolean isFinished() {
-        return mFinished;
     }
 
 }
