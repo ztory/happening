@@ -24,6 +24,10 @@ public abstract class DataPod<R extends DataPodRes> {
 
     private AtomicInteger mTaskIdGenerator = new AtomicInteger(0);
 
+    private String mEventNameBroadcast;
+
+    private DataPodSecret mDataPodSecret;
+
     private Executor mExecutor;
 
     /**
@@ -31,7 +35,16 @@ public abstract class DataPod<R extends DataPodRes> {
      * of the same subclass.
      */
     protected DataPod(Executor theExecutor) {
+
+        mTaskIdGenerator = new AtomicInteger(0);
+        mEventNameBroadcast = Happening.getEventName(getClass(), "broadcast");
+        mDataPodSecret = new DataPodSecret();
+
         mExecutor = theExecutor;
+    }
+
+    protected final DataPodSecret podSecret() {
+        return mDataPodSecret;
     }
 
     protected final Executor podExecutor() {
@@ -98,7 +111,7 @@ public abstract class DataPod<R extends DataPodRes> {
     }
 
     public String podEventNameBroadcast() {
-        return Happening.getEventName(getClass(), "broadcast");
+        return mEventNameBroadcast;
     }
 
     private static final ThreadFactory sPodThreadFactory = new ThreadFactory() {

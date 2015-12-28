@@ -20,7 +20,8 @@ public abstract class DataPodRes<D, P> {
 
     }
 
-    private final String mDataPodEventName;
+    private final DataPod mDataPod;
+
     private final int mTaskId;
 
     private volatile boolean
@@ -36,20 +37,38 @@ public abstract class DataPodRes<D, P> {
     private HashMap<PodCallback<DataPodRes<D, P>>, Handler> mHandlerMap;
 
     protected DataPodRes(DataPod theDataPod, int theTaskId) {
-        mDataPodEventName = theDataPod.podEventNameBroadcast();
+
+        mDataPod = theDataPod;
+
+        if (mDataPod == null) {
+            throw new IllegalArgumentException("mDataPod == null");
+        }
+
         mTaskId = theTaskId;
     }
 
-    public final void setSuccess(D theData) {
-        setSuccess(theData, null);
+    public final void setSuccess(
+            DataPodSecret theSecret,
+            D theData
+    ) {
+        setSuccess(theSecret, theData, null);
     }
 
-    public final void setSuccess(D theData, P thePayload) {
+    public final void setSuccess(
+            DataPodSecret theSecret,
+            D theData,
+            P thePayload
+    ) {
 
         if (mFinished) {
             throw new IllegalStateException(
                     "setPayload() or setException() already called, illegal to call both " +
                     "these methods or calling them more than once!"
+            );
+        }
+        else if (theSecret.id != mDataPod.podSecret().id) {
+            throw new IllegalArgumentException(
+                    "theSecret does not match mDataPod.podSecret()."
             );
         }
 
@@ -67,17 +86,25 @@ public abstract class DataPodRes<D, P> {
 
         Happening.sendEvent(
                 Happening.GROUP_ID_GLOBAL,
-                mDataPodEventName,
+                mDataPod.podEventNameBroadcast(),
                 DataPodRes.this
         );
     }
 
-    public final void setFailed(PodException theException) {
+    public final void setFailed(
+            DataPodSecret theSecret,
+            PodException theException
+    ) {
 
         if (mFinished) {
             throw new IllegalStateException(
                     "setPayload() or setException() already called, illegal to call both " +
                     "these methods or calling them more than once!"
+            );
+        }
+        else if (theSecret.id != mDataPod.podSecret().id) {
+            throw new IllegalArgumentException(
+                    "theSecret does not match mDataPod.podSecret()."
             );
         }
 
@@ -91,7 +118,7 @@ public abstract class DataPodRes<D, P> {
 
         Happening.sendEvent(
                 Happening.GROUP_ID_GLOBAL,
-                mDataPodEventName,
+                mDataPod.podEventNameBroadcast(),
                 DataPodRes.this
         );
     }
