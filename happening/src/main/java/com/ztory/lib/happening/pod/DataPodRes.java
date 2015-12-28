@@ -40,11 +40,11 @@ public abstract class DataPodRes<D, P> {
         mTaskId = theTaskId;
     }
 
-    protected final DataPodRes<D, P> setSuccess(D theData) {
-        return setSuccess(theData, null);
+    public final void setSuccess(D theData) {
+        setSuccess(theData, null);
     }
 
-    protected final DataPodRes<D, P> setSuccess(D theData, P thePayload) {
+    public final void setSuccess(D theData, P thePayload) {
 
         if (mFinished) {
             throw new IllegalStateException(
@@ -70,11 +70,9 @@ public abstract class DataPodRes<D, P> {
                 mDataPodEventName,
                 DataPodRes.this
         );
-
-        return this;
     }
 
-    protected final DataPodRes<D, P> setFailed(PodException theException) {
+    public final void setFailed(PodException theException) {
 
         if (mFinished) {
             throw new IllegalStateException(
@@ -96,8 +94,6 @@ public abstract class DataPodRes<D, P> {
                 mDataPodEventName,
                 DataPodRes.this
         );
-
-        return this;
     }
 
     /**
