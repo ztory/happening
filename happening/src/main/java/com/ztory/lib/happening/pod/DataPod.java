@@ -18,6 +18,8 @@ import java.util.concurrent.atomic.AtomicInteger;
  */
 public abstract class DataPod<R extends DataPodRes> {
 
+    //public abstract R<G> operation(Q<G> queryObject);
+
     public static final boolean ASYNC_TRUE = true, ASYNC_FALSE = false;
 
     private AtomicInteger mTaskIdGenerator = new AtomicInteger(0);
@@ -25,8 +27,8 @@ public abstract class DataPod<R extends DataPodRes> {
     private Executor mExecutor;
 
     /**
-     * Designed for singleton-pattern, think twice before instantiating more than one instance of
-     * the same HappeningPod-subclass.
+     * Designed for singleton-pattern, think twice before instantiating more than one instance
+     * of the same subclass.
      */
     protected DataPod(Executor theExecutor) {
         mExecutor = theExecutor;
@@ -102,7 +104,7 @@ public abstract class DataPod<R extends DataPodRes> {
     private static final ThreadFactory sPodThreadFactory = new ThreadFactory() {
         private final AtomicInteger mCount = new AtomicInteger(1);
         public Thread newThread(Runnable r) {
-            return new Thread(r, "HappeningPod Thread #" + mCount.getAndIncrement());
+            return new Thread(r, "DataPod Thread #" + mCount.getAndIncrement());
         }
     };
 

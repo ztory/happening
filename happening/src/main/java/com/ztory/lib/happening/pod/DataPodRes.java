@@ -12,37 +12,39 @@ import java.util.HashMap;
  */
 public abstract class DataPodRes<D, P> {
 
-    protected void setSuccessCalled() {
+    /**
+     * Subclasses can override this method if they want to do additional grooming of data
+     * before success is set to TRUE. This method will only be called when setSuccess() is called.
+     */
+    protected void onSuccess() {
 
     }
+
+    private final String mDataPodEventName;
+    private final int mTaskId;
 
     private volatile boolean
             mFinished = false,
             mSuccessful = false,
             mAddedListeners = false;
 
-    private final String mDataPodEventName;
-
-    private final int mTaskId;
-
     private volatile D mData;
-    private volatile P mParameterizedData;
+    private volatile P mPayload;
     private volatile PodException mException;
 
     private ArrayList<PodCallback<DataPodRes<D, P>>> mListeners;
     private HashMap<PodCallback<DataPodRes<D, P>>, Handler> mHandlerMap;
 
-    protected <C extends DataPod> DataPodRes(DataPod theDataPod, int theTaskId) {
+    protected DataPodRes(DataPod theDataPod, int theTaskId) {
         mDataPodEventName = theDataPod.podEventNameBroadcast();
         mTaskId = theTaskId;
     }
 
-    protected DataPodRes<D, P> setParameterizedData(P theParameterizedData) {
-        mParameterizedData = theParameterizedData;
-        return this;
+    protected DataPodRes<D, P> setSuccess(D theData) {
+        return setSuccess(theData, null);
     }
 
-    protected DataPodRes<D, P> setSuccess(D theData) {
+    protected DataPodRes<D, P> setSuccess(D theData, P thePayload) {
 
         if (mFinished) {
             throw new IllegalStateException(
@@ -53,7 +55,9 @@ public abstract class DataPodRes<D, P> {
 
         mData = theData;
 
-        setSuccessCalled();
+        mPayload = thePayload;
+
+        onSuccess();
 
         mSuccessful = true;
 
@@ -97,7 +101,7 @@ public abstract class DataPodRes<D, P> {
     }
 
     /**
-     * Method is thread-safe. Is blocking if listeners have been added to this PodResult
+     * Method is thread-safe. Is blocking if listeners have been added.
      */
     private void notifyListeners() {
 
@@ -152,7 +156,7 @@ public abstract class DataPodRes<D, P> {
             final Handler uiHandler
     ) {
 
-        // This will force notifyListeners() to synchronize on PodResult.this
+        // This will force notifyListeners() to synchronize on this instance
         mAddedListeners = true;
 
         if (mFinished) {
@@ -209,13 +213,13 @@ public abstract class DataPodRes<D, P> {
      * Method is thread-safe but non-blocking
      * @return the typecasted payload, may be null even if isSuccessful() == true
      */
-    public P getParameterizedData() {
-        return mParameterizedData;
+    public P getPayload() {
+        return mPayload;
     }
 
     /**
      * Method is thread-safe but non-blocking
-     * @return the exception that caused the PodResult to fail
+     * @return the exception that caused the failure
      */
     public PodException getException() {
         return mException;
@@ -247,10 +251,18 @@ public abstract class DataPodRes<D, P> {
 
     /**
      * Method is thread-safe but non-blocking
-     * @return if the result has a non-null payload, always false until isFinished() == true
+     * @return same as calling get() != null
      */
-    public boolean hasParameterizedData() {
-        return mParameterizedData != null;
+    public boolean has() {
+        return mData != null;
+    }
+
+    /**
+     * Method is thread-safe but non-blocking
+     * @return same as calling getPayload() != null
+     */
+    public boolean hasPayload() {
+        return mPayload != null;
     }
 
     /**
