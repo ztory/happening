@@ -23,7 +23,7 @@ public final class PodQ<T> {
 
     private HashMap<String, Object> map;
 
-    private PodQ() {
+    public PodQ() {
         map = new HashMap<>();
     }
 

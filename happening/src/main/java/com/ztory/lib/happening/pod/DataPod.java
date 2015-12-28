@@ -14,11 +14,21 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 
 /**
+ * Class for working with arbitrary data and/or functionality in a thread-safe way.
+ * It is up to subclasses to determine if the returned data is generated on the calling thread
+ * or on a background thread, but it is preferred to return a reference to the PodResult instance
+ * even if the data is generated on a background thread, that way consumers can determine what
+ * action they want to take when data is not ready for consumtion immediately.
+ *
+ * If this code was possible in Java:
+ * <code>public R<G> operation(Q<G> queryObject)</code>
+ * then it is a good idea to have all functionality pass through that method, so that it is
+ * easy to follow the execution-flow for consumers of this class. And all other instance-methods
+ * would be helper methods that called operation() with more specific arguments.
+ *
  * Created by jonruna on 26/12/15.
  */
 public abstract class DataPod<R extends PodResult> {
-
-    //public abstract R<G> operation(Q<G> queryObject);
 
     public static final boolean ASYNC_TRUE = true, ASYNC_FALSE = false;
 
