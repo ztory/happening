@@ -17,9 +17,12 @@ public abstract class PodResult<D, P> {
     /**
      * Subclasses can override this method if they want to do additional grooming of data
      * before success is set to TRUE. This method will only be called when setSuccess() is called.
+     * @return a P instance, will only be set as this PodResult Payload if there was no payload
+     * set in the call to setSuccess()
+     * @throws PodException
      */
-    protected void onSuccess() throws PodException {
-
+    protected P onSuccess() throws PodException {
+        return null;
     }
 
     private final DataPod mDataPod;
@@ -73,7 +76,12 @@ public abstract class PodResult<D, P> {
 
         mPayload = thePayload;
 
-        onSuccess();
+        if (mPayload == null) {
+            mPayload = onSuccess();
+        }
+        else {
+            onSuccess();
+        }
 
         mSuccessful = true;
 
