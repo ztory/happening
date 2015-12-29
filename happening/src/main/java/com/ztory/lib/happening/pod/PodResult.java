@@ -12,7 +12,7 @@ import java.util.HashMap;
  * exceptions are ready for consumption.
  * Created by jonruna on 26/12/15.
  */
-public abstract class PodResult<D, P> {
+public abstract class PodResult<D, P> implements IRes<D, P> {
 
     /**
      * Subclasses can override this method if they want to do additional grooming of data
@@ -38,8 +38,8 @@ public abstract class PodResult<D, P> {
     private volatile P mPayload;
     private volatile PodException mException;
 
-    private ArrayList<PodCallback<PodResult<D, P>>> mListeners;
-    private HashMap<PodCallback<PodResult<D, P>>, Handler> mHandlerMap;
+    private ArrayList<PodCallback<IRes<D, P>>> mListeners;
+    private HashMap<PodCallback<IRes<D, P>>, Handler> mHandlerMap;
 
     protected PodResult(DataPod theDataPod, int theTaskId) {
 
@@ -52,10 +52,12 @@ public abstract class PodResult<D, P> {
         mTaskId = theTaskId;
     }
 
+    @Override
     public final void setSuccess(PodSecret theSecret, D theData) throws PodException {
         setSuccess(theSecret, theData, null);
     }
 
+    @Override
     public final void setSuccess(PodSecret theSecret, D theData, P thePayload)
             throws PodException
     {
@@ -96,6 +98,7 @@ public abstract class PodResult<D, P> {
         );
     }
 
+    @Override
     public final void setFailed(
             PodSecret theSecret,
             PodException theException
@@ -137,8 +140,8 @@ public abstract class PodResult<D, P> {
             return;
         }
 
-        ArrayList<PodCallback<PodResult<D, P>>> tempListeners;
-        HashMap<PodCallback<PodResult<D, P>>, Handler> tempHandlerMap;
+        ArrayList<PodCallback<IRes<D, P>>> tempListeners;
+        HashMap<PodCallback<IRes<D, P>>, Handler> tempHandlerMap;
 
         synchronized (this) {
             if (mListeners == null) {
@@ -154,7 +157,7 @@ public abstract class PodResult<D, P> {
 
         Handler uiHandler;
 
-        for (final PodCallback<PodResult<D, P>> iterListener : tempListeners) {
+        for (final PodCallback<IRes<D, P>> iterListener : tempListeners) {
 
             uiHandler = tempHandlerMap.get(iterListener);
 
@@ -179,7 +182,8 @@ public abstract class PodResult<D, P> {
      * Add a PodCallback-listener that will be called when the isFinished() == true, will be called
      * immediately if isFinished() is true when calling addListener()
      */
-    public final synchronized void addListener(final PodCallback<PodResult<D, P>> listener) {
+    @Override
+    public final synchronized void addListener(final PodCallback<IRes<D, P>> listener) {
         addListener(listener, null);
     }
 
@@ -188,8 +192,9 @@ public abstract class PodResult<D, P> {
      * Add a PodCallback-listener that will be called when the isFinished() == true, will be called
      * immediately if isFinished() is true when calling addListener()
      */
+    @Override
     public final synchronized void addListener(
-            final PodCallback<PodResult<D, P>> listener,
+            final PodCallback<IRes<D, P>> listener,
             final Handler uiHandler
     ) {
 
@@ -228,7 +233,8 @@ public abstract class PodResult<D, P> {
      * Method is thread-safe AND blocking
      * Remove a previously added PodCallback-listener
      */
-    public final synchronized void removeListener(PodCallback<PodResult<D, P>> listener) {
+    @Override
+    public final synchronized void removeListener(PodCallback<IRes<D, P>> listener) {
 
         if (mListeners == null) {
             return;
@@ -242,6 +248,7 @@ public abstract class PodResult<D, P> {
      * Method is thread-safe but non-blocking
      * @return the typecasted data, may be null even if isSuccessful() == true
      */
+    @Override
     public final D getData() {
         return mData;
     }
@@ -250,6 +257,7 @@ public abstract class PodResult<D, P> {
      * Method is thread-safe but non-blocking
      * @return the typecasted payload, may be null even if isSuccessful() == true
      */
+    @Override
     public final P getPayload() {
         return mPayload;
     }
@@ -258,6 +266,7 @@ public abstract class PodResult<D, P> {
      * Method is thread-safe but non-blocking
      * @return the exception that caused the failure
      */
+    @Override
     public final PodException getException() {
         return mException;
     }
@@ -266,6 +275,7 @@ public abstract class PodResult<D, P> {
      * Method is thread-safe but non-blocking
      * @return the task-id that is generating the result, -1 == not set
      */
+    @Override
     public final int getTaskId() {
         return mTaskId;
     }
@@ -274,6 +284,7 @@ public abstract class PodResult<D, P> {
      * Method is thread-safe but non-blocking
      * @return if the result is finished for consumtion by the caller
      */
+    @Override
     public final boolean isFinished() {
         return mFinished;
     }
@@ -282,6 +293,7 @@ public abstract class PodResult<D, P> {
      * Method is thread-safe but non-blocking
      * @return if the result is successful, always false until isFinished() == true
      */
+    @Override
     public final boolean isSuccessful() {
         return mSuccessful;
     }
@@ -290,6 +302,7 @@ public abstract class PodResult<D, P> {
      * Method is thread-safe but non-blocking
      * @return if the result is successful, returns the same as calling !isSuccessful()
      */
+    @Override
     public final boolean isFailed() {
         return !mSuccessful;
     }
@@ -298,6 +311,7 @@ public abstract class PodResult<D, P> {
      * Method is thread-safe but non-blocking
      * @return same as calling get() != null
      */
+    @Override
     public final boolean hasData() {
         return mData != null;
     }
@@ -306,6 +320,7 @@ public abstract class PodResult<D, P> {
      * Method is thread-safe but non-blocking
      * @return same as calling getPayload() != null
      */
+    @Override
     public final boolean hasPayload() {
         return mPayload != null;
     }

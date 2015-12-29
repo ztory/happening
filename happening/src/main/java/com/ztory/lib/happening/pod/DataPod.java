@@ -28,7 +28,7 @@ import java.util.concurrent.atomic.AtomicInteger;
  *
  * Created by jonruna on 26/12/15.
  */
-public abstract class DataPod<R extends PodResult> {
+public abstract class DataPod<R extends IRes> {
 
     public static final boolean ASYNC_TRUE = true, ASYNC_FALSE = false;
 
