@@ -12,7 +12,7 @@ import java.util.HashMap;
  * exceptions are ready for consumption.
  * Created by jonruna on 26/12/15.
  */
-public abstract class PodResult<D, P> implements IRes<D, P> {
+public abstract class PodResult<D, P> implements PodR<D, P> {
 
     /**
      * Subclasses can override this method if they want to do additional grooming of data
@@ -38,8 +38,8 @@ public abstract class PodResult<D, P> implements IRes<D, P> {
     private volatile P mPayload;
     private volatile PodException mException;
 
-    private ArrayList<PodCallback<IRes<D, P>>> mListeners;
-    private HashMap<PodCallback<IRes<D, P>>, Handler> mHandlerMap;
+    private ArrayList<PodCallback<PodR<D, P>>> mListeners;
+    private HashMap<PodCallback<PodR<D, P>>, Handler> mHandlerMap;
 
     protected PodResult(DataPod theDataPod, int theTaskId) {
 
@@ -140,8 +140,8 @@ public abstract class PodResult<D, P> implements IRes<D, P> {
             return;
         }
 
-        ArrayList<PodCallback<IRes<D, P>>> tempListeners;
-        HashMap<PodCallback<IRes<D, P>>, Handler> tempHandlerMap;
+        ArrayList<PodCallback<PodR<D, P>>> tempListeners;
+        HashMap<PodCallback<PodR<D, P>>, Handler> tempHandlerMap;
 
         synchronized (this) {
             if (mListeners == null) {
@@ -157,7 +157,7 @@ public abstract class PodResult<D, P> implements IRes<D, P> {
 
         Handler uiHandler;
 
-        for (final PodCallback<IRes<D, P>> iterListener : tempListeners) {
+        for (final PodCallback<PodR<D, P>> iterListener : tempListeners) {
 
             uiHandler = tempHandlerMap.get(iterListener);
 
@@ -183,7 +183,7 @@ public abstract class PodResult<D, P> implements IRes<D, P> {
      * immediately if isFinished() is true when calling addListener()
      */
     @Override
-    public final synchronized void addListener(final PodCallback<IRes<D, P>> listener) {
+    public final synchronized void addListener(final PodCallback<PodR<D, P>> listener) {
         addListener(listener, null);
     }
 
@@ -194,7 +194,7 @@ public abstract class PodResult<D, P> implements IRes<D, P> {
      */
     @Override
     public final synchronized void addListener(
-            final PodCallback<IRes<D, P>> listener,
+            final PodCallback<PodR<D, P>> listener,
             final Handler uiHandler
     ) {
 
@@ -234,7 +234,7 @@ public abstract class PodResult<D, P> implements IRes<D, P> {
      * Remove a previously added PodCallback-listener
      */
     @Override
-    public final synchronized void removeListener(PodCallback<IRes<D, P>> listener) {
+    public final synchronized void removeListener(PodCallback<PodR<D, P>> listener) {
 
         if (mListeners == null) {
             return;

@@ -3,9 +3,9 @@ package com.ztory.lib.happening.pod;
 import android.os.Handler;
 
 /**
- * Created by jonruna on 29/12/15.
+ * Created by jonruna on 30/12/15.
  */
-public interface IRes<D, P> {
+public interface PodR<D, P> {
 
     void setSuccess(PodSecret theSecret, D theData) throws PodException;
 
@@ -18,7 +18,7 @@ public interface IRes<D, P> {
      * Add a PodCallback-listener that will be called when the isFinished() == true, will be called
      * immediately if isFinished() is true when calling addListener()
      */
-    void addListener(final PodCallback<IRes<D, P>> listener);
+    void addListener(final PodCallback<PodR<D, P>> listener);
 
     /**
      * Method is thread-safe AND blocking
@@ -26,7 +26,7 @@ public interface IRes<D, P> {
      * immediately if isFinished() is true when calling addListener()
      */
     void addListener(
-            final PodCallback<IRes<D, P>> listener,
+            final PodCallback<PodR<D, P>> listener,
             final Handler uiHandler
     );
 
@@ -34,7 +34,7 @@ public interface IRes<D, P> {
      * Method is thread-safe AND blocking
      * Remove a previously added PodCallback-listener
      */
-    void removeListener(PodCallback<IRes<D, P>> listener);
+    void removeListener(PodCallback<PodR<D, P>> listener);
 
     /**
      * Method is thread-safe but non-blocking
