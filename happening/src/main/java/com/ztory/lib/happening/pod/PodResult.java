@@ -25,7 +25,7 @@ public abstract class PodResult<D, P> implements PodR<D, P> {
         return null;
     }
 
-    private final DataPod mDataPod;
+    private final HappeningPod mHappeningPod;
 
     private final int mTaskId;
 
@@ -41,12 +41,12 @@ public abstract class PodResult<D, P> implements PodR<D, P> {
     private ArrayList<PodCallback<PodR<D, P>>> mListeners;
     private HashMap<PodCallback<PodR<D, P>>, Handler> mHandlerMap;
 
-    protected PodResult(DataPod theDataPod, int theTaskId) {
+    protected PodResult(HappeningPod thePod, int theTaskId) {
 
-        mDataPod = theDataPod;
+        mHappeningPod = thePod;
 
-        if (mDataPod == null) {
-            throw new IllegalArgumentException("mDataPod == null");
+        if (mHappeningPod == null) {
+            throw new IllegalArgumentException("thePod == null");
         }
 
         mTaskId = theTaskId;
@@ -68,7 +68,7 @@ public abstract class PodResult<D, P> implements PodR<D, P> {
                     "these methods or calling them more than once!"
             );
         }
-        else if (theSecret.id != mDataPod.podSecret().id) {
+        else if (theSecret.id != mHappeningPod.podSecret().id) {
             throw new IllegalArgumentException(
                     "theSecret does not match mDataPod.podSecret()."
             );
@@ -93,7 +93,7 @@ public abstract class PodResult<D, P> implements PodR<D, P> {
 
         Happening.sendEvent(
                 Happening.GROUP_ID_GLOBAL,
-                mDataPod.podEventNameBroadcast(),
+                mHappeningPod.podEventNameBroadcast(),
                 PodResult.this
         );
     }
@@ -110,7 +110,7 @@ public abstract class PodResult<D, P> implements PodR<D, P> {
                     "these methods or calling them more than once!"
             );
         }
-        else if (theSecret.id != mDataPod.podSecret().id) {
+        else if (theSecret.id != mHappeningPod.podSecret().id) {
             throw new IllegalArgumentException(
                     "theSecret does not match mDataPod.podSecret()."
             );
@@ -126,7 +126,7 @@ public abstract class PodResult<D, P> implements PodR<D, P> {
 
         Happening.sendEvent(
                 Happening.GROUP_ID_GLOBAL,
-                mDataPod.podEventNameBroadcast(),
+                mHappeningPod.podEventNameBroadcast(),
                 PodResult.this
         );
     }

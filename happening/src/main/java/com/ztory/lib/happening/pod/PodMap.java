@@ -6,27 +6,7 @@ import java.util.Map;
 /**
  * Created by jonruna on 30/12/15.
  */
-public class PodMap extends HashMap<String, Object> {
-
-
-//    private boolean mAsync = true;
-//
-//    private int mHttpVerb = -1;
-//
-//    private String mHttpUrl = null;
-//
-//    private Map<String, String> mHttpHeaders = null;
-//
-//    private Map<String, Object> mParamQuery = null;
-//
-//    private JSONObject mParamJSON = null;
-//
-//    private boolean mParseString = false, mParseJSON = false;
-//
-//    private final Type mParseTypeGSON;
-//
-//    private final Class<G> mParseClassGSON;
-
+public class PodMap<T> extends HashMap<String, Object> implements PodAsync {
 
     /**
      * A couple of general keys to be used by subclasses
@@ -40,21 +20,75 @@ public class PodMap extends HashMap<String, Object> {
             KEY_DATA = PodMap.class.getName() + ".data",
             KEY_PAYLOAD = PodMap.class.getName() + ".payload";
 
-    public int getId() {
-        Integer returnInt = get(Integer.class, KEY_ID);
-        if (returnInt != null) {
-            return returnInt;
-        }
-        else {
-            return 0;
-        }
+    private boolean mAsync = true;
+
+    private T mPayload;
+
+    public PodMap() {
+        super();
     }
 
-    public PodMap setId(int id) {
-        return set(KEY_ID, id);
+    public PodMap(T thePayload) {
+        super();
+
+        setMapPayload(thePayload);
     }
 
-    public PodMap set(String key, Object val) {
+    @Override
+    public boolean isAsync() {
+        return mAsync;
+    }
+
+    public PodMap<T> setAsync(boolean theAsync) {
+        mAsync = theAsync;
+        return this;
+    }
+
+    public T getMapPayload() {
+        return mPayload;
+    }
+
+    public PodMap<T> setMapPayload(T thePayload) {
+        mPayload = thePayload;
+        return this;
+    }
+
+    public boolean getBoolean(String key, boolean defaultValue) {
+        Boolean returnVal = get(Boolean.class, key);
+        return (returnVal != null) ? returnVal : defaultValue;
+    }
+
+    public int getInt(String key, int defaultValue) {
+        Integer returnVal = get(Integer.class, key);
+        return (returnVal != null) ? returnVal : defaultValue;
+    }
+
+    public long getLong(String key, long defaultValue) {
+        Long returnVal = get(Long.class, key);
+        return (returnVal != null) ? returnVal : defaultValue;
+    }
+
+    public float getFloat(String key, float defaultValue) {
+        Float returnVal = get(Float.class, key);
+        return (returnVal != null) ? returnVal : defaultValue;
+    }
+
+    public double getDouble(String key, double defaultValue) {
+        Double returnVal = get(Double.class, key);
+        return (returnVal != null) ? returnVal : defaultValue;
+    }
+
+    public String getString(String key, String defaultValue) {
+        String returnVal = get(String.class, key);
+        return (returnVal != null) ? returnVal : defaultValue;
+    }
+
+    public Object get(String key, Object defaultValue) {
+        Object returnVal = get(key);
+        return (returnVal != null) ? returnVal : defaultValue;
+    }
+
+    public PodMap<T> set(String key, Object val) {
         put(key, val);
         return this;
     }

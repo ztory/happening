@@ -28,7 +28,45 @@ import java.util.concurrent.atomic.AtomicInteger;
  *
  * Created by jonruna on 26/12/15.
  */
-public abstract class DataPod<R extends PodR> {
+public abstract class HappeningPod<D> {
+
+    protected <G> PodR<D, G> podCreateResult(PodMap<G> query) {
+        throw new IllegalStateException(
+                "DataPod subclass: " + getClass() + " has not overridden podCreateResult() !"
+        );
+    }
+
+    protected <G> void podOperationInner(PodMap<G> query, PodR<D, G> result) {
+        throw new IllegalStateException(
+                "DataPod subclass: " + getClass() + " has not overridden podInnerOperation() !"
+        );
+    }
+
+    public <G> PodR<D, G> podOperation(final PodMap<G> query) {
+
+        final PodR<D, G> result = podCreateResult(query);
+
+        if (result.isFinished()) {
+            return result;
+        }
+
+        if (query.isAsync()) {
+
+            Runnable bgRun = new Runnable() {
+                @Override
+                public void run() {
+                    podOperationInner(query, result);
+                }
+            };
+            podExecutor().execute(bgRun);
+        }
+        else {
+            podOperationInner(query, result);
+        }
+
+        return result;
+
+    }
 
     public static final boolean ASYNC_TRUE = true, ASYNC_FALSE = false;
 
@@ -44,7 +82,7 @@ public abstract class DataPod<R extends PodR> {
      * Designed for singleton-pattern, think twice before instantiating more than one instance
      * of the same subclass.
      */
-    protected DataPod(Executor theExecutor) {
+    protected HappeningPod(Executor theExecutor) {
 
         mTaskIdGenerator = new AtomicInteger(0);
         mEventNameBroadcast = Happening.getEventName(getClass(), "broadcast");
@@ -66,14 +104,14 @@ public abstract class DataPod<R extends PodR> {
     }
 
     public HappeningListener podAddListener(
-            final PodCallback<R> callback,
+            final PodCallback<PodR<D, ?>> callback,
             int... releaseGroupIds
     ) {
         return podAddListener(callback, null, releaseGroupIds);
     }
 
     public HappeningListener podAddListener(
-            final PodCallback<R> callback,
+            final PodCallback<PodR<D, ?>> callback,
             final Handler uiHandler,
             int... releaseGroupIds
     ) {
@@ -86,13 +124,13 @@ public abstract class DataPod<R extends PodR> {
                             new Runnable() {
                                 @Override
                                 public void run() {
-                                    callback.callback((R) result);
+                                    callback.callback((PodR<D, ?>) result);
                                 }
                             }
                     );
                 }
                 else {
-                    callback.callback((R) result);
+                    callback.callback((PodR<D, ?>) result);
                 }
                 return null;
             }
