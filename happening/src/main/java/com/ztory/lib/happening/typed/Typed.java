@@ -3,9 +3,9 @@ package com.ztory.lib.happening.typed;
 /**
  * Created by jonruna on 31/12/15.
  */
-public class StTyped {
+public class Typed {
 
-    public static <T> T getTyped(Object value) {
+    public static <T> T get(Object value) {
 
         if (value == null) {
             return null;
@@ -18,8 +18,8 @@ public class StTyped {
         }
     }
 
-    public static <T> T getTyped(Object value, T defaultValue) {
-        T returnVal = getTyped(value);
+    public static <T> T get(Object value, T defaultValue) {
+        T returnVal = get(value);
         return (returnVal != null) ? returnVal : defaultValue;
     }
 

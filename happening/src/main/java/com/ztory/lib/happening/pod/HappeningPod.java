@@ -31,13 +31,13 @@ import java.util.concurrent.atomic.AtomicInteger;
  */
 public abstract class HappeningPod<D> {
 
-    protected abstract <G, Q extends PodPayload<G> & PodAsync & TypedMap<String, ?>>
+    protected abstract <G, Q extends PodTyped<G> & PodAsync & TypedMap<String, ?>>
     PodR<D, G> podCreateResult(Q query);
 
-    protected abstract <G, Q extends PodPayload<G> & PodAsync & TypedMap<String, ?>>
+    protected abstract <G, Q extends PodTyped<G> & PodAsync & TypedMap<String, ?>>
     void podProcess(Q query, PodR<D, G> result) throws PodException;
 
-    protected final <G, Q extends PodPayload<G> & PodAsync & TypedMap<String, ?>>
+    protected final <G, Q extends PodTyped<G> & PodAsync & TypedMap<String, ?>>
     void podSafeProcess(Q query, PodR<D, G> result) {
 
         try {
@@ -64,7 +64,7 @@ public abstract class HappeningPod<D> {
         }
     }
 
-    public final <G, Q extends PodPayload<G> & PodAsync & TypedMap<String, ?>>
+    public final <G, Q extends PodTyped<G> & PodAsync & TypedMap<String, ?>>
     PodR<D, G> podOperation(final Q query) {
 
         if (query == null) {
@@ -82,7 +82,7 @@ public abstract class HappeningPod<D> {
             return result;
         }
 
-        if (query.isAsync()) {
+        if (mHasExecutor && query.isAsync()) {
 
             Runnable bgRun = new Runnable() {
                 @Override
@@ -101,13 +101,15 @@ public abstract class HappeningPod<D> {
 
     public static final boolean ASYNC_TRUE = true, ASYNC_FALSE = false;
 
-    private AtomicInteger mTaskIdGenerator = new AtomicInteger(0);
+    private final AtomicInteger mTaskIdGenerator;
 
-    private String mEventNameBroadcast;
+    private final String mEventNameBroadcast;
 
-    private PodSecret mPodSecret;
+    private final PodSecret mPodSecret;
 
-    private Executor mExecutor;
+    private final Executor mExecutor;
+
+    protected final boolean mHasExecutor;
 
     /**
      * Designed for singleton-pattern, think twice before instantiating more than one instance
@@ -120,6 +122,7 @@ public abstract class HappeningPod<D> {
         mPodSecret = new PodSecret();
 
         mExecutor = theExecutor;
+        mHasExecutor = mExecutor != null;
     }
 
     protected final PodSecret podSecret() {
