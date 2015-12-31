@@ -5,6 +5,7 @@ import android.os.Handler;
 import com.ztory.lib.happening.Happening;
 import com.ztory.lib.happening.HappeningListener;
 import com.ztory.lib.happening.RunObject;
+import com.ztory.lib.happening.typed.TypedMap;
 
 import java.util.concurrent.Executor;
 import java.util.concurrent.LinkedBlockingQueue;
@@ -30,19 +31,50 @@ import java.util.concurrent.atomic.AtomicInteger;
  */
 public abstract class HappeningPod<D> {
 
-    protected <G> PodR<D, G> podCreateResult(PodMap<G> query) {
-        throw new IllegalStateException(
-                "DataPod subclass: " + getClass() + " has not overridden podCreateResult() !"
-        );
+    protected abstract <G, Q extends PodPayload<G> & PodAsync & TypedMap<String, ?>>
+    PodR<D, G> podCreateResult(Q query);
+
+    protected abstract <G, Q extends PodPayload<G> & PodAsync & TypedMap<String, ?>>
+    void podProcess(Q query, PodR<D, G> result) throws PodException;
+
+    protected final <G, Q extends PodPayload<G> & PodAsync & TypedMap<String, ?>>
+    void podSafeProcess(Q query, PodR<D, G> result) {
+
+        try {
+            podProcess(query, result);
+        } catch (PodException e) {
+            result.setFailed(
+                    podSecret(),
+                    e
+            );
+        } catch (Exception e) {
+            result.setFailed(
+                    podSecret(),
+                    new PodException(e)
+            );
+        }
+
+        if (!result.isFinished()) {
+            result.setFailed(
+                    podSecret(),
+                    new PodException(
+                            "podSafeExec() is done executing but result is NOT finished!"
+                    )
+            );
+        }
     }
 
-    protected <G> void podOperationInner(PodMap<G> query, PodR<D, G> result) {
-        throw new IllegalStateException(
-                "DataPod subclass: " + getClass() + " has not overridden podInnerOperation() !"
-        );
-    }
+    public final <G, Q extends PodPayload<G> & PodAsync & TypedMap<String, ?>>
+    PodR<D, G> podOperation(final Q query) {
 
-    public <G> PodR<D, G> podOperation(final PodMap<G> query) {
+        if (query == null) {
+            PodR<D, G> queryNullResult = new PodResult<D, G>(this, -1) { };
+            queryNullResult.setFailed(
+                    podSecret(),
+                    new PodException("query == null")
+            );
+            return queryNullResult;
+        }
 
         final PodR<D, G> result = podCreateResult(query);
 
@@ -55,17 +87,16 @@ public abstract class HappeningPod<D> {
             Runnable bgRun = new Runnable() {
                 @Override
                 public void run() {
-                    podOperationInner(query, result);
+                    podSafeProcess(query, result);
                 }
             };
             podExecutor().execute(bgRun);
         }
         else {
-            podOperationInner(query, result);
+            podSafeProcess(query, result);
         }
 
         return result;
-
     }
 
     public static final boolean ASYNC_TRUE = true, ASYNC_FALSE = false;
