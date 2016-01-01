@@ -37,6 +37,8 @@ public interface TypedMap<K, V> extends Map<K, V> {
             KEY_EXTRA = KEY_PREFIX + "extra",
             KEY_DATA = KEY_PREFIX + "data",
             KEY_PAYLOAD = KEY_PREFIX + "payload",
+            KEY_TYPED = KEY_PREFIX + "typed",
+            KEY_PARAMETERIZED = KEY_PREFIX + "parameterized",
             KEY_PARSE = KEY_PREFIX + "parse",
             KEY_ENCRYPTED = KEY_PREFIX + "encrypted",
             KEY_SECRET = KEY_PREFIX + "secret";
@@ -49,7 +51,7 @@ public interface TypedMap<K, V> extends Map<K, V> {
      * @return with the default implementation then the value is returned as T. Will return
      * null if the value can not be cast into a T-instance, or if get(key) returned null.
      */
-    <T> T getTyped(String key);
+    <T> T typed(String key);
 
     /**
      * Default implementing code for this method is:
@@ -60,5 +62,5 @@ public interface TypedMap<K, V> extends Map<K, V> {
      * @return with the default implementation then the value is returned as T. Will return
      * defaultValue if the value can not be cast into a T-instance, or if get(key) returned null.
      */
-    <T> T getTyped(String key, T defaultValue);
+    <T> T typed(String key, T defaultValue);
 }

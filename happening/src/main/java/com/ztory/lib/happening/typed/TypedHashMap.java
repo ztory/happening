@@ -7,13 +7,21 @@ import java.util.HashMap;
  */
 public class TypedHashMap extends HashMap<String, Object> implements TypedMap<String, Object> {
 
+    public TypedHashMap() {
+        super();
+    }
+
+    public TypedHashMap(int capacity) {
+        super(capacity);
+    }
+
     @Override
-    public <T> T getTyped(String key) {
+    public <T> T typed(String key) {
         return Typed.get(get(key));
     }
 
     @Override
-    public <T> T getTyped(String key, T defaultValue) {
+    public <T> T typed(String key, T defaultValue) {
         return Typed.get(get(key), defaultValue);
     }
 

@@ -12,7 +12,7 @@ import java.util.HashMap;
  * exceptions are ready for consumption.
  * Created by jonruna on 26/12/15.
  */
-public abstract class PodResult<D, P> implements PodR<D, P> {
+public class PodResult<D, P> implements PodR<D, P> {
 
     /**
      * Subclasses can override this method if they want to do additional grooming of data

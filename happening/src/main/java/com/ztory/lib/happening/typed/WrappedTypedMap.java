@@ -7,25 +7,25 @@ import java.util.Set;
 /**
  * Created by jonruna on 31/12/15.
  */
-public class WrappedTypedMap<K, V, M extends Map<K, V>> implements TypedMap<K, V> {
+public class WrappedTypedMap<K, V> implements TypedMap<K, V> {
 
-    private final M mWrappedMap;
+    private final Map<K, V> mWrappedMap;
 
-    public WrappedTypedMap(M theWrappedMap) {
+    public WrappedTypedMap(Map<K, V> theWrappedMap) {
         mWrappedMap = theWrappedMap;
     }
 
-    public M getWrappedMap() {
+    public Map<K, V> getWrappedMap() {
         return mWrappedMap;
     }
 
     @Override
-    public <T> T getTyped(String key) {
+    public <T> T typed(String key) {
         return Typed.get(get(key));
     }
 
     @Override
-    public <T> T getTyped(String key, T defaultValue) {
+    public <T> T typed(String key, T defaultValue) {
         return Typed.get(get(key), defaultValue);
     }
 

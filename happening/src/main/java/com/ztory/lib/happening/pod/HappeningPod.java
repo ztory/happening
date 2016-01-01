@@ -6,6 +6,7 @@ import com.ztory.lib.happening.Happening;
 import com.ztory.lib.happening.HappeningListener;
 import com.ztory.lib.happening.RunObject;
 import com.ztory.lib.happening.typed.TypedMap;
+import com.ztory.lib.happening.typed.TypedPayload;
 
 import java.util.concurrent.Executor;
 import java.util.concurrent.LinkedBlockingQueue;
@@ -16,29 +17,20 @@ import java.util.concurrent.atomic.AtomicInteger;
 
 /**
  * Class for working with arbitrary data and/or functionality in a thread-safe way.
- * It is up to subclasses to determine if the returned data is generated on the calling thread
- * or on a background thread, but it is preferred to return a reference to the PodResult instance
- * even if the data is generated on a background thread, that way consumers can determine what
- * action they want to take when data is not ready for consumtion immediately.
- *
- * If this code was possible in Java:
- * <code>public R<G> operation(Q<G> queryObject)</code>
- * then it is a good idea to have all functionality pass through that method, so that it is
- * easy to follow the execution-flow for consumers of this class. And all other instance-methods
- * would be helper methods that called operation() with more specific arguments.
- *
  * Created by jonruna on 26/12/15.
  */
 public abstract class HappeningPod<D> {
 
-    protected abstract <G, Q extends PodTyped<G> & PodAsync & TypedMap<String, ?>>
+    protected abstract <G, Q extends TypedMap<String, ?> & TypedPayload<G>>
     PodR<D, G> podCreateResult(Q query);
 
-    protected abstract <G, Q extends PodTyped<G> & PodAsync & TypedMap<String, ?>>
+    protected abstract <G, Q extends TypedMap<String, ?> & TypedPayload<G>>
     void podProcess(Q query, PodR<D, G> result) throws PodException;
 
-    protected final <G, Q extends PodTyped<G> & PodAsync & TypedMap<String, ?>>
-    void podSafeProcess(Q query, PodR<D, G> result) {
+    protected final <G, Q extends TypedMap<String, ?> & TypedPayload<G>> void podSafeProcess(
+            Q query,
+            PodR<D, G> result
+    ) {
 
         try {
             podProcess(query, result);
@@ -64,8 +56,19 @@ public abstract class HappeningPod<D> {
         }
     }
 
-    public final <G, Q extends PodTyped<G> & PodAsync & TypedMap<String, ?>>
-    PodR<D, G> podOperation(final Q query) {
+    public final <G, Q extends TypedMap<String, ?> & TypedPayload<G>> PodR<D, G> podOperation(
+            final Q query
+    ) {
+        return podOperation(
+                query.typed(TypedMap.KEY_ASYNC, true),
+                query
+        );
+    }
+
+    public final <G, Q extends TypedMap<String, ?> & TypedPayload<G>> PodR<D, G> podOperation(
+            final boolean async,
+            final Q query
+    ) {
 
         if (query == null) {
             PodR<D, G> queryNullResult = new PodResult<D, G>(this, -1) { };
@@ -82,7 +85,7 @@ public abstract class HappeningPod<D> {
             return result;
         }
 
-        if (mHasExecutor && query.isAsync()) {
+        if (mHasExecutor && async) {
 
             Runnable bgRun = new Runnable() {
                 @Override
@@ -137,14 +140,14 @@ public abstract class HappeningPod<D> {
         return mTaskIdGenerator.incrementAndGet();
     }
 
-    public HappeningListener podAddListener(
+    public final HappeningListener podAddListener(
             final PodCallback<PodR<D, ?>> callback,
             int... releaseGroupIds
     ) {
         return podAddListener(callback, null, releaseGroupIds);
     }
 
-    public HappeningListener podAddListener(
+    public final HappeningListener podAddListener(
             final PodCallback<PodR<D, ?>> callback,
             final Handler uiHandler,
             int... releaseGroupIds
@@ -180,11 +183,11 @@ public abstract class HappeningPod<D> {
         return addListener.startListening();
     }
 
-    public void podRemoveListener(HappeningListener removeListener) {
+    public final void podRemoveListener(HappeningListener removeListener) {
         Happening.removeListener(removeListener);
     }
 
-    public void podRemoveAllListeners() {
+    public final void podRemoveAllListeners() {
         Happening.removeListeners(
                 true,//ignoreGroupId
                 -1,//groupId is ignored
@@ -192,7 +195,7 @@ public abstract class HappeningPod<D> {
         );
     }
 
-    public String podEventNameBroadcast() {
+    public final String podEventNameBroadcast() {
         return mEventNameBroadcast;
     }
 
