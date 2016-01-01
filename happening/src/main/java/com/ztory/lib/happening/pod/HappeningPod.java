@@ -16,7 +16,9 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 
 /**
- * Class for working with arbitrary data and/or functionality in a thread-safe way.
+ * Class for working with arbitrary data and functionality in a thread-safe way.
+ * The idea is that all calls will pass through the pod() method, and subclasses will implement
+ * its custom behaviour in the podCreateResult() and podProcess() methods.
  * Created by jonruna on 26/12/15.
  */
 public abstract class HappeningPod<D> {
@@ -56,22 +58,22 @@ public abstract class HappeningPod<D> {
         }
     }
 
-    public final <G, Q extends TypedMap<String, ?> & TypedPayload<G>> PodR<D, G> podOperation(
+    public final <G, Q extends TypedMap<String, ?> & TypedPayload<G>> PodR<D, G> pod(
             final Q query
     ) {
-        return podOperation(
+        return pod(
                 query.typed(TypedMap.KEY_ASYNC, true),
                 query
         );
     }
 
-    public final <G, Q extends TypedMap<String, ?> & TypedPayload<G>> PodR<D, G> podOperation(
+    public final <G, Q extends TypedMap<String, ?> & TypedPayload<G>> PodR<D, G> pod(
             final boolean async,
             final Q query
     ) {
 
         if (query == null) {
-            PodR<D, G> queryNullResult = new PodResult<D, G>(this, -1) { };
+            PodR<D, G> queryNullResult = new PodResult<>(this, -1);
             queryNullResult.setFailed(
                     podSecret(),
                     new PodException("query == null")
@@ -86,14 +88,14 @@ public abstract class HappeningPod<D> {
         }
 
         if (mHasExecutor && async) {
-
-            Runnable bgRun = new Runnable() {
-                @Override
-                public void run() {
-                    podSafeProcess(query, result);
-                }
-            };
-            podExecutor().execute(bgRun);
+            podExecutor().execute(
+                    new Runnable() {
+                        @Override
+                        public void run() {
+                            podSafeProcess(query, result);
+                        }
+                    }
+            );
         }
         else {
             podSafeProcess(query, result);
