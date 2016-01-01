@@ -62,7 +62,7 @@ public abstract class HappeningPod<D> {
             final Q query
     ) {
         return pod(
-                query.typed(TypedMap.KEY_ASYNC, true),
+                query.typed(TypedMap.ASYNC, mAsyncDefault),
                 query
         );
     }
@@ -116,12 +116,23 @@ public abstract class HappeningPod<D> {
 
     protected final boolean mHasExecutor;
 
+    protected final boolean mAsyncDefault;
+
     /**
      * Designed for singleton-pattern, think twice before instantiating more than one instance
      * of the same subclass.
      */
     protected HappeningPod(Executor theExecutor) {
+        this(theExecutor, true);
+    }
 
+    /**
+     * Designed for singleton-pattern, think twice before instantiating more than one instance
+     * of the same subclass.
+     */
+    protected HappeningPod(Executor theExecutor, boolean theAsyncDefault) {
+
+        mAsyncDefault = theAsyncDefault;
         mTaskIdGenerator = new AtomicInteger(0);
         mEventNameBroadcast = Happening.getEventName(getClass(), "broadcast");
         mPodSecret = new PodSecret();

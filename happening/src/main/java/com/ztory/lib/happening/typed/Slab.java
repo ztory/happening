@@ -3,34 +3,34 @@ package com.ztory.lib.happening.typed;
 /**
  * Created by jonruna on 01/01/16.
  */
-public class BloxTyped<P> extends TypedHashMap implements TypedPayload<P> {
+public class Slab<P> extends TypedHashMap implements TypedPayload<P> {
 
     protected P mPayload;
 
-    public BloxTyped() {
+    public Slab() {
         super();
     }
 
-    public BloxTyped(int capacity) {
+    public Slab(int capacity) {
         super(capacity);
     }
 
-    public BloxTyped(P thePayload) {
+    public Slab(P thePayload) {
         super();
         setPayload(thePayload);
     }
 
-    public BloxTyped(int capacity, P thePayload) {
+    public Slab(int capacity, P thePayload) {
         super(capacity);
         setPayload(thePayload);
     }
 
-    public BloxTyped<P> set(String key, Object val) {
+    public Slab<P> set(String key, Object val) {
         put(key, val);
         return this;
     }
 
-    public BloxTyped<P> setPayload(P thePayload) {
+    public Slab<P> setPayload(P thePayload) {
         mPayload = thePayload;
         return this;
     }
