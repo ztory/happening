@@ -3,6 +3,9 @@ package com.ztory.lib.happening.pod;
 import android.os.Handler;
 
 import com.ztory.lib.happening.Happening;
+import com.ztory.lib.happening.result.Deed;
+import com.ztory.lib.happening.result.DeedCallback;
+import com.ztory.lib.happening.result.DeedException;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -12,16 +15,16 @@ import java.util.HashMap;
  * exceptions are ready for consumption.
  * Created by jonruna on 26/12/15.
  */
-public class PodResult<D, P> implements PodR<D, P> {
+public class PodResult<D, P> implements PodDeed<D, P> {
 
     /**
      * Subclasses can override this method if they want to do additional grooming of data
      * before success is set to TRUE. This method will only be called when setSuccess() is called.
      * @return a P instance, will only be set as this PodResult Payload if there was no payload
      * set in the call to setSuccess()
-     * @throws PodException
+     * @throws DeedException
      */
-    protected P onSuccess() throws PodException {
+    protected P onSuccess() throws DeedException {
         return null;
     }
 
@@ -36,10 +39,10 @@ public class PodResult<D, P> implements PodR<D, P> {
 
     private volatile D mData;
     private volatile P mPayload;
-    private volatile PodException mException;
+    private volatile DeedException mException;
 
-    private ArrayList<PodCallback<PodR<D, P>>> mListeners;
-    private HashMap<PodCallback<PodR<D, P>>, Handler> mHandlerMap;
+    private ArrayList<DeedCallback<Deed<D, P>>> mListeners;
+    private HashMap<DeedCallback<Deed<D, P>>, Handler> mHandlerMap;
 
     protected PodResult(HappeningPod thePod, int theTaskId) {
 
@@ -53,13 +56,13 @@ public class PodResult<D, P> implements PodR<D, P> {
     }
 
     @Override
-    public final void setSuccess(PodSecret theSecret, D theData) throws PodException {
+    public final void setSuccess(PodSecret theSecret, D theData) throws DeedException {
         setSuccess(theSecret, theData, null);
     }
 
     @Override
     public final void setSuccess(PodSecret theSecret, D theData, P thePayload)
-            throws PodException
+            throws DeedException
     {
 
         if (mFinished) {
@@ -101,7 +104,7 @@ public class PodResult<D, P> implements PodR<D, P> {
     @Override
     public final void setFailed(
             PodSecret theSecret,
-            PodException theException
+            DeedException theException
     ) {
 
         if (mFinished) {
@@ -140,8 +143,8 @@ public class PodResult<D, P> implements PodR<D, P> {
             return;
         }
 
-        ArrayList<PodCallback<PodR<D, P>>> tempListeners;
-        HashMap<PodCallback<PodR<D, P>>, Handler> tempHandlerMap;
+        ArrayList<DeedCallback<Deed<D, P>>> tempListeners;
+        HashMap<DeedCallback<Deed<D, P>>, Handler> tempHandlerMap;
 
         synchronized (this) {
             if (mListeners == null) {
@@ -157,7 +160,7 @@ public class PodResult<D, P> implements PodR<D, P> {
 
         Handler uiHandler;
 
-        for (final PodCallback<PodR<D, P>> iterListener : tempListeners) {
+        for (final DeedCallback<Deed<D, P>> iterListener : tempListeners) {
 
             uiHandler = tempHandlerMap.get(iterListener);
 
@@ -183,7 +186,7 @@ public class PodResult<D, P> implements PodR<D, P> {
      * immediately if isFinished() is true when calling addListener()
      */
     @Override
-    public final synchronized void addListener(final PodCallback<PodR<D, P>> listener) {
+    public final synchronized void addListener(final DeedCallback<Deed<D, P>> listener) {
         addListener(listener, null);
     }
 
@@ -194,7 +197,7 @@ public class PodResult<D, P> implements PodR<D, P> {
      */
     @Override
     public final synchronized void addListener(
-            final PodCallback<PodR<D, P>> listener,
+            final DeedCallback<Deed<D, P>> listener,
             final Handler uiHandler
     ) {
 
@@ -234,7 +237,7 @@ public class PodResult<D, P> implements PodR<D, P> {
      * Remove a previously added PodCallback-listener
      */
     @Override
-    public final synchronized void removeListener(PodCallback<PodR<D, P>> listener) {
+    public final synchronized void removeListener(DeedCallback<Deed<D, P>> listener) {
 
         if (mListeners == null) {
             return;
@@ -267,7 +270,7 @@ public class PodResult<D, P> implements PodR<D, P> {
      * @return the exception that caused the failure
      */
     @Override
-    public final PodException getException() {
+    public final DeedException getException() {
         return mException;
     }
 

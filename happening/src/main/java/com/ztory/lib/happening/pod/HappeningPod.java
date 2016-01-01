@@ -5,6 +5,9 @@ import android.os.Handler;
 import com.ztory.lib.happening.Happening;
 import com.ztory.lib.happening.HappeningListener;
 import com.ztory.lib.happening.RunObject;
+import com.ztory.lib.happening.result.Deed;
+import com.ztory.lib.happening.result.DeedCallback;
+import com.ztory.lib.happening.result.DeedException;
 import com.ztory.lib.happening.typed.TypedMap;
 import com.ztory.lib.happening.typed.TypedPayload;
 
@@ -23,20 +26,23 @@ import java.util.concurrent.atomic.AtomicInteger;
  */
 public abstract class HappeningPod<D> {
 
-    protected abstract <G, Q extends TypedMap<String, ?> & TypedPayload<G>>
-    PodR<D, G> podCreateResult(Q query);
+//    TODO skapa nytt package "happening.result" flytta ut PodR och rename till Result, flytta
+//    TODO också ut PodCallback och rename till ResultCallback eller nåt!!!!
 
     protected abstract <G, Q extends TypedMap<String, ?> & TypedPayload<G>>
-    void podProcess(Q query, PodR<D, G> result) throws PodException;
+    PodDeed<D, G> podCreateResult(Q query);
+
+    protected abstract <G, Q extends TypedMap<String, ?> & TypedPayload<G>>
+    void podProcess(Q query, PodDeed<D, G> result) throws DeedException;
 
     protected final <G, Q extends TypedMap<String, ?> & TypedPayload<G>> void podSafeProcess(
             Q query,
-            PodR<D, G> result
+            PodDeed<D, G> result
     ) {
 
         try {
             podProcess(query, result);
-        } catch (PodException e) {
+        } catch (DeedException e) {
             result.setFailed(
                     podSecret(),
                     e
@@ -44,21 +50,21 @@ public abstract class HappeningPod<D> {
         } catch (Exception e) {
             result.setFailed(
                     podSecret(),
-                    new PodException(e)
+                    new DeedException(e)
             );
         }
 
         if (!result.isFinished()) {
             result.setFailed(
                     podSecret(),
-                    new PodException(
+                    new DeedException(
                             "podSafeExec() is done executing but result is NOT finished!"
                     )
             );
         }
     }
 
-    public final <G, Q extends TypedMap<String, ?> & TypedPayload<G>> PodR<D, G> pod(
+    public final <G, Q extends TypedMap<String, ?> & TypedPayload<G>> Deed<D, G> pod(
             final Q query
     ) {
         return pod(
@@ -67,21 +73,21 @@ public abstract class HappeningPod<D> {
         );
     }
 
-    public final <G, Q extends TypedMap<String, ?> & TypedPayload<G>> PodR<D, G> pod(
+    public final <G, Q extends TypedMap<String, ?> & TypedPayload<G>> Deed<D, G> pod(
             final boolean async,
             final Q query
     ) {
 
         if (query == null) {
-            PodR<D, G> queryNullResult = new PodResult<>(this, -1);
+            PodDeed<D, G> queryNullResult = new PodResult<>(this, -1);
             queryNullResult.setFailed(
                     podSecret(),
-                    new PodException("query == null")
+                    new DeedException("query == null")
             );
             return queryNullResult;
         }
 
-        final PodR<D, G> result = podCreateResult(query);
+        final PodDeed<D, G> result = podCreateResult(query);
 
         if (result.isFinished()) {
             return result;
@@ -154,14 +160,14 @@ public abstract class HappeningPod<D> {
     }
 
     public final HappeningListener podAddListener(
-            final PodCallback<PodR<D, ?>> callback,
+            final DeedCallback<Deed<D, ?>> callback,
             int... releaseGroupIds
     ) {
         return podAddListener(callback, null, releaseGroupIds);
     }
 
     public final HappeningListener podAddListener(
-            final PodCallback<PodR<D, ?>> callback,
+            final DeedCallback<Deed<D, ?>> callback,
             final Handler uiHandler,
             int... releaseGroupIds
     ) {
@@ -174,13 +180,13 @@ public abstract class HappeningPod<D> {
                             new Runnable() {
                                 @Override
                                 public void run() {
-                                    callback.callback((PodR<D, ?>) result);
+                                    callback.callback((Deed<D, ?>) result);
                                 }
                             }
                     );
                 }
                 else {
-                    callback.callback((PodR<D, ?>) result);
+                    callback.callback((Deed<D, ?>) result);
                 }
                 return null;
             }
