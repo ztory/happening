@@ -26,9 +26,6 @@ import java.util.concurrent.atomic.AtomicInteger;
  */
 public abstract class HappeningPod<D> {
 
-//    TODO skapa nytt package "happening.result" flytta ut PodR och rename till Result, flytta
-//    TODO också ut PodCallback och rename till ResultCallback eller nåt!!!!
-
     protected abstract <G, Q extends TypedMap<String, ?> & TypedPayload<G>>
     PodDeed<D, G> podCreateResult(Q query);
 
