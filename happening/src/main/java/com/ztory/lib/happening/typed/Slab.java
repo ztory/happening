@@ -1,9 +1,15 @@
 package com.ztory.lib.happening.typed;
 
+import com.ztory.lib.happening.Run;
+
 /**
+ * General purpose data object, capable of serving as a query/parameter or data-return.
+ * Can also function as a callback-object by setting the key CALLBACK to a Run instance, if
+ * this object is used as a callback-object without setting a Run-instance to the CALLBACK key
+ * then the callback will return this Slab instance.
  * Created by jonruna on 01/01/16.
  */
-public class Slab<P> extends TypedHashMap implements TypedPayload<P> {
+public class Slab<P> extends TypedHashMap implements TypedPayload<P>, Run {
 
     protected P mPayload;
 
@@ -38,6 +44,22 @@ public class Slab<P> extends TypedHashMap implements TypedPayload<P> {
     @Override
     public P getPayload() {
         return mPayload;
+    }
+
+    @Override
+    public Object r(Object o) {
+
+        Run callbackRun = typed(CALLBACK);
+
+        if (callbackRun != null) {
+            try {
+                return callbackRun.r(o);
+            } catch (Exception e) {
+                return e;
+            }
+        }
+
+        return this;
     }
 
 }
