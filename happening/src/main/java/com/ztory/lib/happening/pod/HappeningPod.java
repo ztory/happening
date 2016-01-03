@@ -27,7 +27,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 public abstract class HappeningPod<D> {
 
     protected abstract <G, Q extends TypedMap<String, ?> & TypedPayload<G>>
-    PodDeed<D, G> podCreateResult(Q query);
+    PodDeed<D, G> podCreateResult(Q query) throws DeedException;
 
     protected abstract <G, Q extends TypedMap<String, ?> & TypedPayload<G>>
     void podProcess(Q query, PodDeed<D, G> result) throws DeedException;
@@ -84,7 +84,25 @@ public abstract class HappeningPod<D> {
             return queryNullResult;
         }
 
-        final PodDeed<D, G> result = podCreateResult(query);
+        final PodDeed<D, G> result;
+
+        try {
+            result = podCreateResult(query);
+        } catch (DeedException e) {
+            PodDeed<D, G> queryExceptionResult = new PodResult<>(this, -1);
+            queryExceptionResult.setFailed(
+                    podSecret(),
+                    e
+            );
+            return queryExceptionResult;
+        } catch (Exception e) {
+            PodDeed<D, G> queryExceptionResult = new PodResult<>(this, -1);
+            queryExceptionResult.setFailed(
+                    podSecret(),
+                    new DeedException(e)
+            );
+            return queryExceptionResult;
+        }
 
         if (result.isFinished()) {
             return result;
