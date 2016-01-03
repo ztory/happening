@@ -26,15 +26,40 @@ import java.util.concurrent.atomic.AtomicInteger;
  */
 public abstract class HappeningPod<D> {
 
-    protected abstract <G, Q extends TypedMap<String, ?> & TypedPayload<G>>
-    PodDeed<D, G> podCreateResult(Q query) throws DeedException;
+    /**
+     * Create a PodDeed on the calling thread, if Deed.isFinished() == TRUE after this method is
+     * executed then the Deed will be returned to the caller immediately without executing the
+     * podProcess() method.
+     * It is safe to do any operation and cause any Exception in this method,
+     * since the Exception will be caught and returned in the Deed.
+     * @param query the query object
+     * @param <P> the parameterized payload
+     * @param <Q> TypedMap<String, ?> & TypedPayload<G>
+     * @return a PodDeed instance
+     * @throws DeedException
+     */
+    protected abstract <P, Q extends TypedMap<String, ?> & TypedPayload<P>>
+    PodDeed<D, P> podCreateResult(Q query) throws DeedException;
 
-    protected abstract <G, Q extends TypedMap<String, ?> & TypedPayload<G>>
-    void podProcess(Q query, PodDeed<D, G> result) throws DeedException;
+    /**
+     * This method processes the query and generates the result-Deed data and payload.
+     * This method will be executed on a background-thread if this Pod was created with an
+     * Executor instance, and the query is run with async==TRUE, otherwise this method will
+     * be executed on the calling thread.
+     * It is safe to do any operation and cause any Exception in this method,
+     * since the Exception will be caught and returned in the Deed.
+     * @param query the query object
+     * @param result the result object
+     * @param <P> the parameterized payload
+     * @param <Q> TypedMap<String, ?> & TypedPayload<G>
+     * @throws DeedException
+     */
+    protected abstract <P, Q extends TypedMap<String, ?> & TypedPayload<P>>
+    void podProcess(Q query, PodDeed<D, P> result) throws DeedException;
 
-    protected final <G, Q extends TypedMap<String, ?> & TypedPayload<G>> void podSafeProcess(
+    protected final <P, Q extends TypedMap<String, ?> & TypedPayload<P>> void podSafeProcess(
             Q query,
-            PodDeed<D, G> result
+            PodDeed<D, P> result
     ) {
 
         try {
@@ -61,7 +86,7 @@ public abstract class HappeningPod<D> {
         }
     }
 
-    public final <G, Q extends TypedMap<String, ?> & TypedPayload<G>> Deed<D, G> pod(
+    public final <P, Q extends TypedMap<String, ?> & TypedPayload<P>> Deed<D, P> pod(
             final Q query
     ) {
         return pod(
@@ -70,42 +95,33 @@ public abstract class HappeningPod<D> {
         );
     }
 
-    public final <G, Q extends TypedMap<String, ?> & TypedPayload<G>> Deed<D, G> pod(
+    public final <P, Q extends TypedMap<String, ?> & TypedPayload<P>> Deed<D, P> pod(
             final boolean async,
             final Q query
     ) {
 
-        if (query == null) {
-            PodDeed<D, G> queryNullResult = new PodResult<>(this, -1);
-            queryNullResult.setFailed(
-                    podSecret(),
-                    new DeedException("query == null")
-            );
-            return queryNullResult;
-        }
-
-        final PodDeed<D, G> result;
+        final PodDeed<D, P> result;
 
         try {
             result = podCreateResult(query);
+
+            if (result.isFinished()) {
+                return result;
+            }
         } catch (DeedException e) {
-            PodDeed<D, G> queryExceptionResult = new PodResult<>(this, -1);
+            PodDeed<D, P> queryExceptionResult = new PodResult<>(this, -1);
             queryExceptionResult.setFailed(
                     podSecret(),
                     e
             );
             return queryExceptionResult;
         } catch (Exception e) {
-            PodDeed<D, G> queryExceptionResult = new PodResult<>(this, -1);
+            PodDeed<D, P> queryExceptionResult = new PodResult<>(this, -1);
             queryExceptionResult.setFailed(
                     podSecret(),
                     new DeedException(e)
             );
             return queryExceptionResult;
-        }
-
-        if (result.isFinished()) {
-            return result;
         }
 
         if (mHasExecutor && async) {
