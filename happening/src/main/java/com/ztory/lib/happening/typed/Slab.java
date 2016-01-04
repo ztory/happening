@@ -4,14 +4,16 @@ import com.ztory.lib.happening.Run;
 
 /**
  * General purpose data object, capable of serving as a query/parameter or data-return.
- * Can also function as a callback-object by setting the key CALLBACK to a Run instance, if
- * this object is used as a callback-object without setting a Run-instance to the CALLBACK key
- * then the callback will return this Slab instance.
+ * Can also function as a callback-object by setting the key RUN_INTERFACE to a Run instance.
+ * If the Run instance added to RUN_INTERFACE returns RUN_RETURN_SLAB then this Slab
+ * instance will be returned instead. If no Run instance is found on the RUN_INTERFACE key then
+ * this Slab instance will be returned without any additional computation, this can be used to
+ * make static data available from everywhere, but released on specific Happening groupIds.
  * Created by jonruna on 01/01/16.
  */
 public class Slab<P> extends TypedHashMap implements TypedPayload<P>, Run {
 
-    protected P mPayload;
+    public static final Object SLAB_RUN_RETURN = new Object();
 
     public Slab() {
         super();
@@ -37,23 +39,31 @@ public class Slab<P> extends TypedHashMap implements TypedPayload<P>, Run {
     }
 
     public Slab<P> setPayload(P thePayload) {
-        mPayload = thePayload;
-        return this;
+        return set(PAYLOAD, thePayload);
     }
 
     @Override
     public P getPayload() {
-        return mPayload;
+        return typed(PAYLOAD);
     }
 
     @Override
     public Object r(Object o) {
 
-        Run callbackRun = typed(CALLBACK);
+        Run callbackRun = typed(RUN_INTERFACE);
 
         if (callbackRun != null) {
             try {
-                return callbackRun.r(o);
+
+                Object runReturn = callbackRun.r(o);
+
+                if (SLAB_RUN_RETURN.equals(runReturn)) {
+                    return this;
+                }
+                else {
+                    return runReturn;
+                }
+
             } catch (Exception e) {
                 return e;
             }
