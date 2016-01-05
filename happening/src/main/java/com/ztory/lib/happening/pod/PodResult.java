@@ -6,6 +6,8 @@ import com.ztory.lib.happening.Happening;
 import com.ztory.lib.happening.result.Deed;
 import com.ztory.lib.happening.result.DeedCallback;
 import com.ztory.lib.happening.result.DeedException;
+import com.ztory.lib.happening.result.DeedSecret;
+import com.ztory.lib.happening.result.DeedSetter;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -15,7 +17,7 @@ import java.util.HashMap;
  * exceptions are ready for consumption.
  * Created by jonruna on 26/12/15.
  */
-public class PodResult<D, P> implements PodDeed<D, P> {
+public class PodResult<D, P> implements DeedSetter<D, P> {
 
     /**
      * Subclasses can override this method if they want to do additional grooming of data
@@ -56,12 +58,12 @@ public class PodResult<D, P> implements PodDeed<D, P> {
     }
 
     @Override
-    public final void setSuccess(PodSecret theSecret, D theData) throws DeedException {
+    public final void setSuccess(DeedSecret theSecret, D theData) throws DeedException {
         setSuccess(theSecret, theData, null);
     }
 
     @Override
-    public final void setSuccess(PodSecret theSecret, D theData, P thePayload)
+    public final void setSuccess(DeedSecret theSecret, D theData, P thePayload)
             throws DeedException
     {
 
@@ -71,7 +73,7 @@ public class PodResult<D, P> implements PodDeed<D, P> {
                     "these methods or calling them more than once!"
             );
         }
-        else if (theSecret.id != mHappeningPod.podSecret().id) {
+        else if (theSecret.hashCode() != mHappeningPod.podSecret().hashCode()) {
             throw new IllegalArgumentException(
                     "theSecret does not match mDataPod.podSecret()."
             );
@@ -103,7 +105,7 @@ public class PodResult<D, P> implements PodDeed<D, P> {
 
     @Override
     public final void setFailed(
-            PodSecret theSecret,
+            DeedSecret theSecret,
             DeedException theException
     ) {
 
@@ -113,7 +115,7 @@ public class PodResult<D, P> implements PodDeed<D, P> {
                     "these methods or calling them more than once!"
             );
         }
-        else if (theSecret.id != mHappeningPod.podSecret().id) {
+        else if (theSecret.hashCode() != mHappeningPod.podSecret().hashCode()) {
             throw new IllegalArgumentException(
                     "theSecret does not match mDataPod.podSecret()."
             );

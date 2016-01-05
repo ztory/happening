@@ -8,6 +8,8 @@ import com.ztory.lib.happening.RunObject;
 import com.ztory.lib.happening.result.Deed;
 import com.ztory.lib.happening.result.DeedCallback;
 import com.ztory.lib.happening.result.DeedException;
+import com.ztory.lib.happening.result.DeedSecret;
+import com.ztory.lib.happening.result.DeedSetter;
 import com.ztory.lib.happening.typed.TypedMap;
 import com.ztory.lib.happening.typed.TypedPayload;
 
@@ -39,7 +41,7 @@ public abstract class HappeningPod<D> {
      * @throws DeedException
      */
     protected abstract <P, Q extends TypedMap<String, ?> & TypedPayload<P>>
-    PodDeed<D, P> podCreateResult(Q query) throws DeedException;
+    DeedSetter<D, P> podCreateResult(Q query) throws DeedException;
 
     /**
      * This method processes the query and generates the result-Deed data and payload.
@@ -55,11 +57,11 @@ public abstract class HappeningPod<D> {
      * @throws DeedException
      */
     protected abstract <P, Q extends TypedMap<String, ?> & TypedPayload<P>>
-    void podProcess(Q query, PodDeed<D, P> result) throws DeedException;
+    void podProcess(Q query, DeedSetter<D, P> result) throws DeedException;
 
     protected final <P, Q extends TypedMap<String, ?> & TypedPayload<P>> void podSafeProcess(
             Q query,
-            PodDeed<D, P> result
+            DeedSetter<D, P> result
     ) {
 
         try {
@@ -100,7 +102,7 @@ public abstract class HappeningPod<D> {
             final Q query
     ) {
 
-        final PodDeed<D, P> result;
+        final DeedSetter<D, P> result;
 
         try {
             result = podCreateResult(query);
@@ -109,14 +111,14 @@ public abstract class HappeningPod<D> {
                 return result;
             }
         } catch (DeedException e) {
-            PodDeed<D, P> queryExceptionResult = new PodResult<>(this, -1);
+            DeedSetter<D, P> queryExceptionResult = new PodResult<>(this, -1);
             queryExceptionResult.setFailed(
                     podSecret(),
                     e
             );
             return queryExceptionResult;
         } catch (Exception e) {
-            PodDeed<D, P> queryExceptionResult = new PodResult<>(this, -1);
+            DeedSetter<D, P> queryExceptionResult = new PodResult<>(this, -1);
             queryExceptionResult.setFailed(
                     podSecret(),
                     new DeedException(e)
@@ -147,7 +149,7 @@ public abstract class HappeningPod<D> {
 
     private final String mEventNameBroadcast;
 
-    private final PodSecret mPodSecret;
+    private final DeedSecret mPodSecret;
 
     private final Executor mExecutor;
 
@@ -172,13 +174,13 @@ public abstract class HappeningPod<D> {
         mAsyncDefault = theAsyncDefault;
         mTaskIdGenerator = new AtomicInteger(0);
         mEventNameBroadcast = Happening.getEventName(getClass(), "broadcast");
-        mPodSecret = new PodSecret();
+        mPodSecret = new DeedSecret();
 
         mExecutor = theExecutor;
         mHasExecutor = mExecutor != null;
     }
 
-    protected final PodSecret podSecret() {
+    protected final DeedSecret podSecret() {
         return mPodSecret;
     }
 
