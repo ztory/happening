@@ -186,6 +186,11 @@ public class Slab<P> extends TypedHashMap implements TypedPayload<P>, Run, DeedS
 
         set(FINISHED, true);
 
+        Run<?, Slab> onSuccessListener = typed(ON_SUCCESS);
+        if (onSuccessListener != null) {
+            onSuccessListener.r(this);
+        }
+
         notifyDeedListeners();
 
         Happening.sendEvent(
@@ -212,6 +217,11 @@ public class Slab<P> extends TypedHashMap implements TypedPayload<P>, Run, DeedS
 
         set(FINISHED, true);
 
+        Run<?, Slab> onFailListener = typed(ON_FAIL);
+        if (onFailListener != null) {
+            onFailListener.r(this);
+        }
+
         notifyDeedListeners();
 
         Happening.sendEvent(
@@ -231,20 +241,14 @@ public class Slab<P> extends TypedHashMap implements TypedPayload<P>, Run, DeedS
 
     public void notifyDeedListeners() {
 
-        ArrayList<DeedCallback<Deed<Slab, P>>> tempListeners;
+        ArrayList<DeedCallback<Deed<Slab, P>>> tempListeners = typed(LISTENER);
         HashMap<DeedCallback<Deed<Slab, P>>, Handler> tempHandlerMap;
 
-        synchronized (this) {
-
-            ArrayList<DeedCallback<Deed<Slab, P>>> mListeners = typed(LISTENER);
-
-            if (mListeners == null) {
-                return;
-            }
-
-            tempListeners = mListeners;
-            tempHandlerMap = typed(HANDLER);
+        if (tempListeners == null) {
+            return;
         }
+
+        tempHandlerMap = typed(HANDLER);
 
         Handler uiHandler = null;
 
