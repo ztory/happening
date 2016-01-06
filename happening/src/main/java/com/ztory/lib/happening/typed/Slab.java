@@ -28,8 +28,6 @@ public class Slab<P>
         implements TypedMap<String, Object>, TypedPayload<P>, Run, DeedSetter<Slab, P>
 {
 
-    //TODO extenda ConcurrentHashMap instead of HashMap ????
-
     //TODO WRITE TESTS FOR ALL FUNCTIONALITY IN Slab CLASS !!!!
 
     public Slab() {

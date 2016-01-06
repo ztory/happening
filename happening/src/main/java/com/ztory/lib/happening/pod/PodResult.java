@@ -45,7 +45,7 @@ public class PodResult<D, P> implements DeedSetter<D, P> {
     private ArrayList<DeedCallback<Deed<D, P>>> mListeners;
     private HashMap<DeedCallback<Deed<D, P>>, Handler> mHandlerMap;
 
-    protected PodResult(HappeningPod<D> thePod, int theTaskId) {
+    public PodResult(HappeningPod<D> thePod, int theTaskId) {
 
         mHappeningPod = thePod;
 
