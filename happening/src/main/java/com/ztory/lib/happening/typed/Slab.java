@@ -12,6 +12,7 @@ import com.ztory.lib.happening.result.DeedSetter;
 
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * General purpose data object, capable of serving as a query/parameter or data-return.
@@ -22,13 +23,14 @@ import java.util.HashMap;
  * make static data available from everywhere, but released on specific Happening groupIds.
  * Created by jonruna on 01/01/16.
  */
-public class Slab<P> extends TypedHashMap implements TypedPayload<P>, Run, DeedSetter<Slab, P> {
+public class Slab<P>
+        extends ConcurrentHashMap<String, Object>
+        implements TypedMap<String, Object>, TypedPayload<P>, Run, DeedSetter<Slab, P>
+{
 
     //TODO extenda ConcurrentHashMap instead of HashMap ????
 
     //TODO WRITE TESTS FOR ALL FUNCTIONALITY IN Slab CLASS !!!!
-
-    public static final Object SLAB_RUN_RETURN = new Object();
 
     public Slab() {
         super();
@@ -48,13 +50,23 @@ public class Slab<P> extends TypedHashMap implements TypedPayload<P>, Run, DeedS
         setPayload(thePayload);
     }
 
-    public Slab<P> set(String key, Object val) {
+    public Slab<P> putSlab(String key, Object val) {
         put(key, val);
         return this;
     }
 
     public Slab<P> setPayload(P thePayload) {
-        return set(PAYLOAD, thePayload);
+        return putSlab(PAYLOAD, thePayload);
+    }
+
+    @Override
+    public <T> T typed(String key) {
+        return Typed.get(get(key));
+    }
+
+    @Override
+    public <T> T typed(String key, T defaultValue) {
+        return Typed.get(get(key), defaultValue);
     }
 
     @Override
@@ -87,7 +99,7 @@ public class Slab<P> extends TypedHashMap implements TypedPayload<P>, Run, DeedS
 
         if (listeners == null) {
             listeners = new ArrayList<>(1);
-            set(LISTENER, listeners);
+            put(LISTENER, listeners);
         }
         listeners.add(listener);
 
@@ -95,7 +107,7 @@ public class Slab<P> extends TypedHashMap implements TypedPayload<P>, Run, DeedS
 
             if (handlerMap == null) {
                 handlerMap = new HashMap<>(1);
-                set(HANDLER, handlerMap);
+                put(HANDLER, handlerMap);
             }
 
             handlerMap.put(listener, uiHandler);
@@ -178,13 +190,13 @@ public class Slab<P> extends TypedHashMap implements TypedPayload<P>, Run, DeedS
             );
         }
 
-        set(DATA, theData);
+        put(DATA, theData);
 
-        set(PAYLOAD, thePayload);
+        put(PAYLOAD, thePayload);
 
-        set(SUCCESS, true);
+        put(SUCCESS, true);
 
-        set(FINISHED, true);
+        put(FINISHED, true);
 
         Run<?, Slab> onSuccessListener = typed(ON_SUCCESS);
         if (onSuccessListener != null) {
@@ -194,8 +206,8 @@ public class Slab<P> extends TypedHashMap implements TypedPayload<P>, Run, DeedS
         notifyDeedListeners();
 
         Happening.sendEvent(
-                getEventGroupId(),
-                getEventName(),
+                typed(GROUP, Happening.GROUP_ID_GLOBAL),
+                typed(EVENT, Happening.getEventName(getClass(), "broadcast")),
                 this
         );
     }
@@ -211,11 +223,11 @@ public class Slab<P> extends TypedHashMap implements TypedPayload<P>, Run, DeedS
             );
         }
 
-        set(EXCEPTION, theException);
+        put(EXCEPTION, theException);
 
-        set(SUCCESS, false);
+        put(SUCCESS, false);
 
-        set(FINISHED, true);
+        put(FINISHED, true);
 
         Run<?, Slab> onFailListener = typed(ON_FAIL);
         if (onFailListener != null) {
@@ -225,18 +237,10 @@ public class Slab<P> extends TypedHashMap implements TypedPayload<P>, Run, DeedS
         notifyDeedListeners();
 
         Happening.sendEvent(
-                getEventGroupId(),
-                getEventName(),
+                typed(GROUP, Happening.GROUP_ID_GLOBAL),
+                typed(EVENT, Happening.getEventName(getClass(), "broadcast")),
                 this
         );
-    }
-
-    public int getEventGroupId() {
-        return typed(GROUP, Happening.GROUP_ID_GLOBAL);
-    }
-
-    public String getEventName() {
-        return typed(EVENT, Happening.getEventName(getClass(), "broadcast"));
     }
 
     public void notifyDeedListeners() {
@@ -277,20 +281,16 @@ public class Slab<P> extends TypedHashMap implements TypedPayload<P>, Run, DeedS
     @Override
     public Object r(Object o) {
 
-        Run callbackRun = typed(RUN_INTERFACE);
+        Run callbackRun = typed(RUN);
 
         if (callbackRun != null) {
             try {
 
                 Object runReturn = callbackRun.r(o);
 
-                if (SLAB_RUN_RETURN.equals(runReturn)) {
-                    return this;
-                }
-                else {
+                if (runReturn != null) {
                     return runReturn;
                 }
-
             } catch (Exception e) {
                 return e;
             }

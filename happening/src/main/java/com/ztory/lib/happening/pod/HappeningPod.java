@@ -38,7 +38,7 @@ public abstract class HappeningPod<D> {
      * @param <P> the parameterized payload
      * @param <Q> TypedMap<String, ?> & TypedPayload<G>
      * @return a PodDeed instance
-     * @throws DeedException
+     * @throws DeedException it is expected to throw a DeedException if query is malformed
      */
     protected abstract <P, Q extends TypedMap<String, ?> & TypedPayload<P>>
     DeedSetter<D, P> podCreateResult(Q query) throws DeedException;
@@ -54,7 +54,8 @@ public abstract class HappeningPod<D> {
      * @param result the result object
      * @param <P> the parameterized payload
      * @param <Q> TypedMap<String, ?> & TypedPayload<G>
-     * @throws DeedException
+     * @throws DeedException it is expected to throw a DeedException if query is malformed, or
+     * if there was an error while generating the result.
      */
     protected abstract <P, Q extends TypedMap<String, ?> & TypedPayload<P>>
     void podProcess(Q query, DeedSetter<D, P> result) throws DeedException;
@@ -97,6 +98,17 @@ public abstract class HappeningPod<D> {
         );
     }
 
+    /**
+     * General method for querying the HappeningPod instance. This will generate a
+     * Deed<D, P> instance from the data provided in the query object.
+     * @param async if the caller wants to generate the result on bg-thread, provided that the
+     *              HappeningPod instance supports bg-operations by having set an Executor.
+     * @param query the query data that will be used to generate the result from
+     * @param <P> the parameterized type of the returned Deed
+     * @param <Q> the query type: extends TypedMap<String, ?> & TypedPayload<P>>
+     * @return a Deed<D, P> result, if pod() is called with async==FALSE then
+     * Deed.isFinished() is always true after calling this method.
+     */
     public final <P, Q extends TypedMap<String, ?> & TypedPayload<P>> Deed<D, P> pod(
             final boolean async,
             final Q query
@@ -192,6 +204,18 @@ public abstract class HappeningPod<D> {
         return mTaskIdGenerator.incrementAndGet();
     }
 
+    public final String podEventNameBroadcast() {
+        return mEventNameBroadcast;
+    }
+
+    public final void podBroadcast(Deed<D, ?> result) {
+        Happening.sendEvent(
+                Happening.GROUP_ID_GLOBAL,
+                podEventNameBroadcast(),
+                result
+        );
+    }
+
     public final HappeningListener podAddListener(
             final DeedCallback<Deed<D, ?>> callback,
             int... releaseGroupIds
@@ -245,10 +269,6 @@ public abstract class HappeningPod<D> {
                 -1,//groupId is ignored
                 podEventNameBroadcast()
         );
-    }
-
-    public final String podEventNameBroadcast() {
-        return mEventNameBroadcast;
     }
 
     private static final ThreadFactory sPodThreadFactory = new ThreadFactory() {

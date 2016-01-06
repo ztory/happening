@@ -2,7 +2,6 @@ package com.ztory.lib.happening.pod;
 
 import android.os.Handler;
 
-import com.ztory.lib.happening.Happening;
 import com.ztory.lib.happening.result.Deed;
 import com.ztory.lib.happening.result.DeedCallback;
 import com.ztory.lib.happening.result.DeedException;
@@ -30,7 +29,7 @@ public class PodResult<D, P> implements DeedSetter<D, P> {
         return null;
     }
 
-    private final HappeningPod mHappeningPod;
+    private final HappeningPod<D> mHappeningPod;
 
     private final int mTaskId;
 
@@ -46,7 +45,7 @@ public class PodResult<D, P> implements DeedSetter<D, P> {
     private ArrayList<DeedCallback<Deed<D, P>>> mListeners;
     private HashMap<DeedCallback<Deed<D, P>>, Handler> mHandlerMap;
 
-    protected PodResult(HappeningPod thePod, int theTaskId) {
+    protected PodResult(HappeningPod<D> thePod, int theTaskId) {
 
         mHappeningPod = thePod;
 
@@ -96,11 +95,7 @@ public class PodResult<D, P> implements DeedSetter<D, P> {
 
         notifyListeners();
 
-        Happening.sendEvent(
-                Happening.GROUP_ID_GLOBAL,
-                mHappeningPod.podEventNameBroadcast(),
-                PodResult.this
-        );
+        mHappeningPod.podBroadcast(this);
     }
 
     @Override
@@ -129,11 +124,7 @@ public class PodResult<D, P> implements DeedSetter<D, P> {
 
         notifyListeners();
 
-        Happening.sendEvent(
-                Happening.GROUP_ID_GLOBAL,
-                mHappeningPod.podEventNameBroadcast(),
-                PodResult.this
-        );
+        mHappeningPod.podBroadcast(this);
     }
 
     /**
