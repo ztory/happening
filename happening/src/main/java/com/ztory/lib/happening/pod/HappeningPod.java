@@ -93,7 +93,7 @@ public abstract class HappeningPod<D> {
             final Q query
     ) {
         return pod(
-                query.typed(TypedMap.ASYNC, mAsyncDefault),
+                (query != null) ? query.typed(TypedMap.ASYNC, mAsyncDefault) : mAsyncDefault,
                 query
         );
     }
