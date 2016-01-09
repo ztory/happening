@@ -75,9 +75,6 @@ public class Slab<P>
     @Override
     public void addListener(final DeedCallback<Deed<Slab, P>> listener, Handler uiHandler) {
 
-        ArrayList<DeedCallback<Deed<Slab, P>>> listeners = typed(LISTENER);
-        HashMap<DeedCallback<Deed<Slab, P>>, Handler> handlerMap = typed(HANDLER);
-
         if (isFinished()) {
             if (uiHandler != null) {
                 uiHandler.post(
@@ -94,6 +91,9 @@ public class Slab<P>
             }
             return;
         }
+
+        ArrayList<DeedCallback<Deed<Slab, P>>> listeners = typed(LISTENER);
+        HashMap<DeedCallback<Deed<Slab, P>>, Handler> handlerMap = typed(HANDLER);
 
         if (listeners == null) {
             listeners = new ArrayList<>(1);
