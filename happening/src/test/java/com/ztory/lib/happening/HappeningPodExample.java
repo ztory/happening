@@ -2,8 +2,8 @@ package com.ztory.lib.happening;
 
 import com.ztory.lib.happening.pod.HappeningPod;
 import com.ztory.lib.happening.pod.PodResult;
-import com.ztory.lib.happening.result.DeedException;
-import com.ztory.lib.happening.result.DeedSetter;
+import com.ztory.lib.happening.deed.DeedException;
+import com.ztory.lib.happening.deed.DeedSetter;
 import com.ztory.lib.happening.typed.Typed;
 import com.ztory.lib.happening.typed.TypedMap;
 import com.ztory.lib.happening.typed.TypedPayload;

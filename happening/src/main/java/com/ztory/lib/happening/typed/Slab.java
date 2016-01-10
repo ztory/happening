@@ -4,11 +4,11 @@ import android.os.Handler;
 
 import com.ztory.lib.happening.Happening;
 import com.ztory.lib.happening.Run;
-import com.ztory.lib.happening.result.Deed;
-import com.ztory.lib.happening.result.DeedCallback;
-import com.ztory.lib.happening.result.DeedException;
-import com.ztory.lib.happening.result.DeedSecret;
-import com.ztory.lib.happening.result.DeedSetter;
+import com.ztory.lib.happening.deed.Deed;
+import com.ztory.lib.happening.deed.DeedCallback;
+import com.ztory.lib.happening.deed.DeedException;
+import com.ztory.lib.happening.deed.DeedSecret;
+import com.ztory.lib.happening.deed.DeedSetter;
 
 import java.util.ArrayList;
 import java.util.HashMap;

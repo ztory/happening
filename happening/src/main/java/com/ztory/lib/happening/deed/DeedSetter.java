@@ -1,4 +1,4 @@
-package com.ztory.lib.happening.result;
+package com.ztory.lib.happening.deed;
 
 /**
  * Extention of the Deed interfaced, complete with success and failed methods!

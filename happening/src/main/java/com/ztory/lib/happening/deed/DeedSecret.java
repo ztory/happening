@@ -1,4 +1,4 @@
-package com.ztory.lib.happening.result;
+package com.ztory.lib.happening.deed;
 
 import java.util.concurrent.atomic.AtomicInteger;
 

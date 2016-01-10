@@ -5,11 +5,11 @@ import android.os.Handler;
 import com.ztory.lib.happening.Happening;
 import com.ztory.lib.happening.HappeningListener;
 import com.ztory.lib.happening.RunObject;
-import com.ztory.lib.happening.result.Deed;
-import com.ztory.lib.happening.result.DeedCallback;
-import com.ztory.lib.happening.result.DeedException;
-import com.ztory.lib.happening.result.DeedSecret;
-import com.ztory.lib.happening.result.DeedSetter;
+import com.ztory.lib.happening.deed.Deed;
+import com.ztory.lib.happening.deed.DeedCallback;
+import com.ztory.lib.happening.deed.DeedException;
+import com.ztory.lib.happening.deed.DeedSecret;
+import com.ztory.lib.happening.deed.DeedSetter;
 import com.ztory.lib.happening.typed.TypedMap;
 import com.ztory.lib.happening.typed.TypedPayload;
 
@@ -100,7 +100,7 @@ public abstract class HappeningPod<D> {
 
     /**
      * General method for querying the HappeningPod instance. This will generate a
-     * Deed<D, P> instance from the data provided in the query object.
+     * Deed<D, P> instance result from the data provided in the query object.
      * @param async if the caller wants to generate the result on bg-thread, provided that the
      *              HappeningPod instance supports bg-operations by having set an Executor.
      * @param query the query data that will be used to generate the result from

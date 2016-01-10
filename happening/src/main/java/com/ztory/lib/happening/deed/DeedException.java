@@ -1,4 +1,4 @@
-package com.ztory.lib.happening.result;
+package com.ztory.lib.happening.deed;
 
 /**
  * Exception class used by Deed instances

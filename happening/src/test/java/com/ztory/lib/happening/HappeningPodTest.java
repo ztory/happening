@@ -1,7 +1,7 @@
 package com.ztory.lib.happening;
 
-import com.ztory.lib.happening.result.Deed;
-import com.ztory.lib.happening.result.DeedCallback;
+import com.ztory.lib.happening.deed.Deed;
+import com.ztory.lib.happening.deed.DeedCallback;
 import com.ztory.lib.happening.typed.Slab;
 
 import junit.framework.TestCase;
