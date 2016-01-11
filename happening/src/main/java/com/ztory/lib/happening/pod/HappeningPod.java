@@ -29,27 +29,12 @@ import java.util.concurrent.atomic.AtomicInteger;
 public abstract class HappeningPod<D> {
 
     /**
-     * Create a PodDeed on the calling thread, if Deed.isFinished() == TRUE after this method is
-     * executed then the Deed will be returned to the caller immediately without executing the
-     * podProcess() method.
-     * It is safe to do any operation and cause any Exception in this method,
-     * since the Exception will be caught and returned in the Deed.
-     * @param query the query object
-     * @param <P> the parameterized payload
-     * @param <Q> TypedMap<String, ?> & TypedPayload<G>
-     * @return a PodDeed instance
-     * @throws Exception it is expected to throw a DeedException if query is malformed
-     */
-    protected abstract <P, Q extends TypedMap<String, ?> & TypedPayload<P>>
-    DeedSetter<D, P> podCreateResult(Q query) throws Exception;
-
-    /**
      * This method processes the query and generates the result-Deed data and payload.
      * This method will be executed on a background-thread if this Pod was created with an
      * Executor instance, and the query is run with async==TRUE, otherwise this method will
      * be executed on the calling thread.
      * It is safe to do any operation and cause any Exception in this method,
-     * since the Exception will be caught and returned in the Deed.
+     * since the Exception will be caught and returned in a Deed.
      * @param query the query object
      * @param result the result object
      * @param <P> the parameterized payload
@@ -59,6 +44,23 @@ public abstract class HappeningPod<D> {
      */
     protected abstract <P, Q extends TypedMap<String, ?> & TypedPayload<P>>
     void podProcess(Q query, DeedSetter<D, P> result) throws Exception;
+
+    /**
+     * Create a DeedSetter on the calling thread, if Deed.isFinished() == TRUE after this method is
+     * executed then the Deed will be returned to the caller immediately without executing the
+     * podProcess() method.
+     * It is safe to do any operation and cause any Exception in this method,
+     * since the Exception will be caught and returned in a Deed.
+     * @param query the query object
+     * @param <P> the parameterized payload
+     * @param <Q> TypedMap<String, ?> & TypedPayload<G>
+     * @return a PodDeed instance
+     * @throws Exception it is expected to throw a DeedException if query is malformed
+     */
+    protected <P, Q extends TypedMap<String, ?> & TypedPayload<P>>
+    DeedSetter<D, P> podCreateResult(Q query) throws Exception {
+        return new PodResult<>(this, podGetUniqueTaskId());
+    }
 
     /**
      * Override this method in subclasses to react to exceptions caught by HappeningPod.
