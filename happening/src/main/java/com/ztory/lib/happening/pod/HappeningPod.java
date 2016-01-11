@@ -38,10 +38,10 @@ public abstract class HappeningPod<D> {
      * @param <P> the parameterized payload
      * @param <Q> TypedMap<String, ?> & TypedPayload<G>
      * @return a PodDeed instance
-     * @throws DeedException it is expected to throw a DeedException if query is malformed
+     * @throws Exception it is expected to throw a DeedException if query is malformed
      */
     protected abstract <P, Q extends TypedMap<String, ?> & TypedPayload<P>>
-    DeedSetter<D, P> podCreateResult(Q query) throws DeedException;
+    DeedSetter<D, P> podCreateResult(Q query) throws Exception;
 
     /**
      * This method processes the query and generates the result-Deed data and payload.
@@ -54,11 +54,18 @@ public abstract class HappeningPod<D> {
      * @param result the result object
      * @param <P> the parameterized payload
      * @param <Q> TypedMap<String, ?> & TypedPayload<G>
-     * @throws DeedException it is expected to throw a DeedException if query is malformed, or
+     * @throws Exception it is expected to throw a DeedException if query is malformed, or
      * if there was an error while generating the result.
      */
     protected abstract <P, Q extends TypedMap<String, ?> & TypedPayload<P>>
-    void podProcess(Q query, DeedSetter<D, P> result) throws DeedException;
+    void podProcess(Q query, DeedSetter<D, P> result) throws Exception;
+
+    /**
+     * Override this method in subclasses to react to exceptions caught by HappeningPod.
+     */
+    protected void podOnException(Exception e) {
+
+    }
 
     protected final <P, Q extends TypedMap<String, ?> & TypedPayload<P>> void podSafeProcess(
             Q query,
@@ -72,11 +79,13 @@ public abstract class HappeningPod<D> {
                     podSecret(),
                     e
             );
+            podOnException(e);
         } catch (Exception e) {
             result.setFailed(
                     podSecret(),
                     new DeedException(e)
             );
+            podOnException(e);
         }
 
         if (!result.isFinished()) {
@@ -128,6 +137,7 @@ public abstract class HappeningPod<D> {
                     podSecret(),
                     e
             );
+            podOnException(e);
             return queryExceptionResult;
         } catch (Exception e) {
             DeedSetter<D, P> queryExceptionResult = new PodResult<>(this, -1);
@@ -135,6 +145,7 @@ public abstract class HappeningPod<D> {
                     podSecret(),
                     new DeedException(e)
             );
+            podOnException(e);
             return queryExceptionResult;
         }
 
