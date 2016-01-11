@@ -4,6 +4,7 @@ import android.os.Handler;
 
 import com.ztory.lib.happening.Happening;
 import com.ztory.lib.happening.HappeningListener;
+import com.ztory.lib.happening.HappeningLog;
 import com.ztory.lib.happening.RunObject;
 import com.ztory.lib.happening.deed.Deed;
 import com.ztory.lib.happening.deed.DeedCallback;
@@ -67,6 +68,20 @@ public abstract class HappeningPod<D> {
      */
     protected void podOnException(Exception e) {
 
+        if (HappeningLog.LOG_ENABLED) {
+            if (e instanceof DeedException) {
+                HappeningLog.log(getClass(),
+                        e.getClass().getSimpleName() + " | code", ((DeedException) e).getCode(),
+                        "e.getMessage()", e.getMessage()
+                );
+            }
+            else {
+                HappeningLog.log(getClass(),
+                        "e.getClass().getSimpleName()", e.getClass().getSimpleName(),
+                        "e.getMessage()", e.getMessage()
+                );
+            }
+        }
     }
 
     protected final <P, Q extends TypedMap<String, ?> & TypedPayload<P>> void podSafeProcess(
