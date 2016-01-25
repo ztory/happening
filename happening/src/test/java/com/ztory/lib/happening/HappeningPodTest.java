@@ -8,6 +8,7 @@ import junit.framework.TestCase;
 
 import java.util.ArrayList;
 import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.TimeUnit;
 
 /**
  * Tests for the HappeningPod-functionality, using the HappeningPodExample-implementation class
@@ -25,7 +26,36 @@ public class HappeningPodTest extends TestCase {
         super.tearDown();
     }
 
-    public void test1SynchronousResult() throws Exception {
+    public void testParallelExecution() throws Exception {
+
+        CountDownLatch countDownLatch = new CountDownLatch(4);
+
+        Deed<ArrayList<String>, Void> deed1, deed2, deed3, deed4;
+
+        deed1 = HappeningPodExample.get().podMagazineFindAll(countDownLatch);
+        deed2 = HappeningPodExample.get().podMagazineFindAll(countDownLatch);
+        deed3 = HappeningPodExample.get().podMagazineFindAll(countDownLatch);
+
+        countDownLatch.await(2000, TimeUnit.MILLISECONDS);
+
+        assertFalse(deed1.isFinished());
+        assertFalse(deed2.isFinished());
+        assertFalse(deed3.isFinished());
+
+        deed4 = HappeningPodExample.get().podMagazineFindAll(countDownLatch);
+
+        //countDownLatch.await();
+        countDownLatch.await(4000, TimeUnit.MILLISECONDS);
+
+        assertTrue(deed1.isFinished());
+        assertTrue(deed2.isFinished());
+        assertTrue(deed3.isFinished());
+        assertTrue(deed4.isFinished());
+
+
+    }
+
+    public void testSynchronousResult() throws Exception {
 
         final int podMode = 16;
         final String podType = "HappeningPodTest TYPE!!!!";
@@ -54,7 +84,7 @@ public class HappeningPodTest extends TestCase {
         assertEquals(expectedToString, result.getData().toString());
     }
 
-    public void test2BroadcastListener() throws Exception {
+    public void testBroadcastListener() throws Exception {
 
         final CountDownLatch callbackLatch = new CountDownLatch(1);
 
@@ -93,7 +123,7 @@ public class HappeningPodTest extends TestCase {
         );
     }
 
-    public void test3ResultListener() throws Exception {
+    public void testResultListener() throws Exception {
 
         final CountDownLatch callbackLatch = new CountDownLatch(1);
 

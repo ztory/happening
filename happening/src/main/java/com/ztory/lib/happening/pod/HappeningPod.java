@@ -1,5 +1,6 @@
 package com.ztory.lib.happening.pod;
 
+import android.os.Build;
 import android.os.Handler;
 
 import com.ztory.lib.happening.Happening;
@@ -92,16 +93,35 @@ public abstract class HappeningPod<D> {
         try {
             podProcess(query, result);
         } catch (DeedException e) {
+
+            if (result.isFinished()) {
+                throw new IllegalStateException(
+                        "Exception thrown when deed.isFinished(), probably thrown by deed-listener",
+                        e
+                );
+            }
+
             result.setFailed(
                     podSecret(),
                     e
             );
+
             podOnException(e);
+
         } catch (Exception e) {
+
+            if (result.isFinished()) {
+                throw new IllegalStateException(
+                        "Exception thrown when deed.isFinished(), probably thrown by deed-listener",
+                        e
+                );
+            }
+
             result.setFailed(
                     podSecret(),
                     new DeedException(e)
             );
+
             podOnException(e);
         }
 
@@ -299,22 +319,37 @@ public abstract class HappeningPod<D> {
         );
     }
 
-    private static final ThreadFactory sPodThreadFactory = new ThreadFactory() {
-        private final AtomicInteger mCount = new AtomicInteger(1);
-        public Thread newThread(Runnable r) {
-            return new Thread(r, "DataPod Thread #" + mCount.getAndIncrement());
-        }
-    };
+    protected static ThreadPoolExecutor podCreateExecutor(
+            final String threadNamePrefix,
+            int poolSizeMax
+    ) {
 
-    protected static ThreadPoolExecutor podCreateExecutor(int poolSizeMin, int poolSizeMax) {
-        return new ThreadPoolExecutor(
-                poolSizeMin,//CORE_POOL_SIZE,
+        //http://docs.oracle.com/javase/6/docs/api/java/util/concurrent/ThreadPoolExecutor.html
+        //If there are more than corePoolSize but less than maximumPoolSize threads running,
+        //a new thread will be created only if the queue is full.
+
+        ThreadPoolExecutor returnPool = new ThreadPoolExecutor(
+                poolSizeMax,//CORE_POOL_SIZE,
                 poolSizeMax,//MAX_POOL_SIZE,
                 4,//KEEP_ALIVE
                 TimeUnit.SECONDS,
-                new LinkedBlockingQueue<Runnable>(1024),
-                sPodThreadFactory
+                new LinkedBlockingQueue<Runnable>(),
+                new ThreadFactory() {
+                    private final AtomicInteger mCount = new AtomicInteger(1);
+                    public Thread newThread(Runnable runnable) {
+                        return new Thread(
+                                runnable,
+                                threadNamePrefix + " #" + mCount.getAndIncrement()
+                        );
+                    }
+                }
         );
+
+        if (Build.VERSION.SDK_INT >= 9) {
+            returnPool.allowCoreThreadTimeOut(true);
+        }
+
+        return returnPool;
     }
 
 }

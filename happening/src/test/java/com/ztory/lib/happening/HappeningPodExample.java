@@ -1,14 +1,17 @@
 package com.ztory.lib.happening;
 
+import com.ztory.lib.happening.deed.Deed;
 import com.ztory.lib.happening.pod.HappeningPod;
 import com.ztory.lib.happening.pod.PodResult;
 import com.ztory.lib.happening.deed.DeedException;
 import com.ztory.lib.happening.deed.DeedSetter;
+import com.ztory.lib.happening.typed.Slab;
 import com.ztory.lib.happening.typed.Typed;
 import com.ztory.lib.happening.typed.TypedMap;
 import com.ztory.lib.happening.typed.TypedPayload;
 
 import java.util.ArrayList;
+import java.util.concurrent.CountDownLatch;
 
 /**
  * Example implementation class of HappeningPod
@@ -27,10 +30,21 @@ public class HappeningPodExample extends HappeningPod<ArrayList<String>> {
         return sInstance;
     }
 
+    public static volatile int magazineFindAllCount = 0;
+
     public static final int MAGAZINE_FIND_ALL = 44;
 
     protected HappeningPodExample() {
-        super(podCreateExecutor(0, 1));
+        super(podCreateExecutor(HappeningPodExample.class.getSimpleName(), 4));
+    }
+
+    public final Deed<ArrayList<String>, Void> podMagazineFindAll(CountDownLatch latch) {
+        return pod(
+                HappeningPodExample.ASYNC_TRUE,
+                new Slab<Void>()
+                        .putSlab(Slab.MODE, HappeningPodExample.MAGAZINE_FIND_ALL)
+                        .putSlab(CountDownLatch.class.getName(), latch)
+        );
     }
 
     @Override
@@ -44,6 +58,18 @@ public class HappeningPodExample extends HappeningPod<ArrayList<String>> {
     void podProcess(Q query, DeedSetter<ArrayList<String>, P> result) throws DeedException {
 
         if (query.typed(TypedMap.MODE, -1) == MAGAZINE_FIND_ALL) {
+
+            CountDownLatch latch = query.typed(CountDownLatch.class.getName());
+
+            if (latch != null) {
+                try {
+                    latch.countDown();
+                    latch.await();
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
+            }
+
             ArrayList<String> listResult = new ArrayList<>();
             listResult.add("DONE processing findAllMagazines() call!");
 
