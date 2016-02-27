@@ -1,4 +1,8 @@
 apply plugin: 'com.android.library'
+apply plugin: 'maven'
+
+version = '0.9.0'
+group = 'com.ztory.lib.happening'
 
 android {
     compileSdkVersion 23
@@ -21,4 +25,11 @@ android {
 dependencies {
     compile fileTree(dir: 'libs', include: ['*.jar'])
     testCompile 'junit:junit:4.12'
+}
+
+uploadArchives {
+    repositories.mavenDeployer {
+        repository(url: "file:///Users/jonruna/dev_space/Happening/maven-repository/")
+        //repository(file('src/config.xml'))
+    }
 }
