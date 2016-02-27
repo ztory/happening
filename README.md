@@ -62,6 +62,32 @@ This can be used in a similar way for all functionality that has a START/END lif
 
 To obtain unique ids to be used with `Happening` you would call either `Happening.getUniqueActivityId()` or `Happening.getUniqueCustomGroupId()`, they will never clash, so you could use either.
 
+### Enough! I want to use it, tell me how!
+
+#### Step 1
+In your base `gradle.build` file (the one in project root), add this:
+```
+maven { url "https://github.com/ztory/happening/raw/master/maven-repository/" }
+```
+So that it will look something like this:
+```
+allprojects {
+    repositories {
+        jcenter()
+        mavenCentral()
+        maven { url "https://github.com/ztory/happening/raw/master/maven-repository/" }
+    }
+}
+```
+
+#### Step 2
+In your apps `build.gradle` add this:
+```
+compile 'com.ztory.lib.happening:happening:0.9.0'
+```
+
+### What else?
+
 If you have any problems or questions just create one of those [GitHub Issues](https://github.com/ztory/happening/issues)!
 
 Happy coding! =]
